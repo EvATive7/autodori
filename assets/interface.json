@@ -28,27 +28,7 @@
             ]
         }
     ],
-    "task": [
-        {
-            "name": "普通任务",
-            "entry": "MyTask1"
-        },
-        {
-            "name": "选项任务",
-            "entry": "MyTask2",
-            "option": [
-                "任务选项1"
-            ]
-        },
-        {
-            "name": "参数任务",
-            "entry": "MyTask3",
-            "option": [
-                "任务选项1"
-            ],
-            "pipeline_override": {}
-        }
-    ],
+    "task": [],
     "option": {
         "任务选项1": {
             "cases": [

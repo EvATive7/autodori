@@ -1,0 +1,10 @@
+requests
+diskcache
+fuzzywuzzy
+minitouch.py
+maafw
+numpy
+pyyaml
+python-levenshtein
+playhouse
+peewee
