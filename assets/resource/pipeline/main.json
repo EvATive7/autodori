@@ -169,7 +169,8 @@
     },
     "close_app": {
         "action": "StopApp",
-        "package": "com.bilibili.star.bili"
+        "package": "com.bilibili.star.bili",
+        "next": "Stop"
     },
     "set_diffculty": {
         "action": "Click",
