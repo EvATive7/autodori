@@ -33,76 +33,101 @@ SLICE_SIZE = 30
 def actions_to_MNTcmd(commands, actions, resolution, touch_offset, move_offset):
     builder = CommandBuilder()
 
-    def append(commands_to_append: list, action=None):
-        for command in commands_to_append:
-            commands.append(
-                {
-                    "command": command,
-                    "action": action,
-                }
-            )
+    def append(command_to_append, action=None):
+        commands.append(
+            {
+                "command": command_to_append,
+                "action": action,
+            }
+        )
+
+    def round_tuple(target):
+        return tuple(round(x) for x in target)
 
     offset = 0
 
-    for i, action in enumerate(actions):
-
+    # classification
+    actions_grouped = []
+    for action in actions:
         time_ = action["time"]
-        action_type = action["type"]
-        finger = action["finger"]
+        if len(actions_grouped) != 0:
+            last_time = actions_grouped[-1]["time"]
+        else:
+            last_time = -1
+        if last_time != time_:
+            actions_grouped.append({"time": time_, "actions": [action]})
+        else:
+            actions_grouped[-1]["actions"].append(action)
 
-        def round_tuple(target):
-            return tuple(round(x) for x in target)
+    rounded_loss = 0.0
 
-        if action_type == "down":
-            offset += touch_offset
-            append(
-                [
+    # append
+    for i1, actions_group in enumerate(actions_grouped):
+        time_ = actions_group["time"]
+
+        for _, action in enumerate(actions_group["actions"]):
+            action_type = action["type"]
+            finger = action["finger"]
+
+            if action_type == "down":
+                offset += touch_offset
+                append(
                     builder.down(
                         finger,
                         *androidxy_to_MNTxy(round_tuple(action["pos"]), resolution),
                         100,
                     ),
-                    builder.commit(),
-                ],
-                action,
-            )
-        elif action_type == "move":
-            offset += move_offset
-            append(
-                [
+                    action,
+                )
+            elif action_type == "move":
+                offset += move_offset
+                append(
                     builder.move(
                         finger,
                         *androidxy_to_MNTxy(round_tuple(action["to"]), resolution),
                         100,
                     ),
-                    builder.commit(),
-                ],
-                action,
-            )
+                    action,
+                )
 
-        elif action_type == "up":
-            append(
-                [
-                    builder.up(finger),
-                    builder.commit(),
-                ],
-                action,
-            )
+            elif action_type == "up":
+                append(builder.up(finger), action)
 
-        if i == len(actions) - 1:
-            append([builder.wait(1000), builder.commit()])
+        append(builder.commit())
 
+        if i1 == len(actions_grouped) - 1:
+            append(builder.wait(2000))
+            append(builder.commit())
         else:
-            nextaction = actions[i + 1]
-            nexttime = nextaction["time"]
+            next_actiongroup = actions_grouped[i1 + 1]
+            nexttime = next_actiongroup["time"]
             wait_for = nexttime - time_
-            if offset != 0 and action_type == "down":
+            if offset != 0 and all(
+                [action["type"] == "down" for action in next_actiongroup["actions"]]
+            ):
                 min_ = min(wait_for, offset)
                 wait_for -= min_
                 offset -= min_
-            wait_for = round(wait_for)
-            if wait_for > 0.01:
-                append([builder.wait(wait_for), builder.commit()])
+
+            if abs(rounded_loss) > 0.1 and all(
+                [action["type"] == "down" for action in next_actiongroup["actions"]]
+            ):
+                if rounded_loss > 0:
+                    wait_for += rounded_loss
+                else:
+                    rounded_loss_abs = abs(rounded_loss)
+                    if wait_for < rounded_loss_abs:
+                        wait_for = wait_for - wait_for
+                        rounded_loss += wait_for
+                    else:
+                        wait_for += rounded_loss
+                        rounded_loss = rounded_loss - rounded_loss
+
+            rounded_waitfor = round(wait_for)
+            rounded_loss += wait_for - rounded_waitfor
+            if rounded_waitfor > 0.01:
+                append(builder.wait(rounded_waitfor))
+                append(builder.commit())
     return builder
 
 
