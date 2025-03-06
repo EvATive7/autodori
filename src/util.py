@@ -340,17 +340,6 @@ def display_cmds(commands):
         logging.debug(log)
 
 
-def dump_debug_config(commands):
-    dump_path = Path("debug/dump")
-    dump_path.mkdir(exist_ok=True)
-    (dump_path / f"dump-{time.time()}.json").write_text(
-        json.dumps(
-            commands,
-            indent=4,
-        )
-    )
-
-
 def get_color_eval_in_range(image_array, start_row, end_row):
     """
     计算图像指定行范围内颜色的平均值和标准差。

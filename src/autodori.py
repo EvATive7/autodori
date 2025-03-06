@@ -51,6 +51,7 @@ all_song_name_indexes: dict[str, str] = {
 }
 current_song_name: str = None
 current_song_id: str = None
+current_chart: Chart = None
 current_cmd: CommandBuilder = None
 commands = []
 
@@ -249,29 +250,53 @@ class Play(CustomAction):
 @maaresource.custom_action("SaveSong")
 class SaveSong(CustomAction):
     def run(self, context: Context, argv: CustomAction.RunArg):
-        global current_song_name, current_cmd, current_song_id
-        reco_detail: CustomRecognitionResult = argv.reco_detail.best_result
-        current_song_name = reco_detail.detail
-        current_song_id = all_song_name_indexes[current_song_name]
-        current_chart = Chart((current_song_id, DIFFICULTY))
-        actions = notes_to_actions(current_chart.time_chart, player.resolution)
-        current_cmd = actions_to_MNTcmd(
-            commands,
-            actions,
-            player.resolution,
-            DEFAULT_DOWN_OFFSET,
-            DEFAULT_MOVE_OFFSET,
-        )
-
-        logging.debug("Save song name: {}".format(current_song_name))
+        name: CustomRecognitionResult = argv.reco_detail.best_result.detail
+        save_song(name)
+        logging.debug("Save song: {}".format(name))
         return CustomAction.RunResult(True)
 
 
-def play_song(cmd: CommandBuilder):
+def save_song(name):
+    global current_song_name, current_cmd, current_song_id, current_chart
+    current_song_name = name
+    current_song_id = all_song_name_indexes[current_song_name]
+    current_chart = Chart((current_song_id, DIFFICULTY))
+    actions = notes_to_actions(current_chart.time_chart, player.resolution)
+    current_cmd = actions_to_MNTcmd(
+        commands,
+        actions,
+        player.resolution,
+        DEFAULT_DOWN_OFFSET,
+        DEFAULT_MOVE_OFFSET,
+    )
+    pass
+
+
+def play_song():
     logging.info("Start play")
 
     wait_first_note()
-    cmd.publish(mnt_connection, block=True)
+    current_cmd.publish(mnt_connection, block=True)
+
+
+def dump_debug_config():
+    global commands, current_song_name, current_song_id
+    dump_path = Path("debug/dump")
+    dump_path.mkdir(exist_ok=True)
+    (dump_path / f"dump-{time.time()}.json").write_text(
+        json.dumps(
+            {
+                "song_name": current_song_name,
+                "song_id": current_song_id,
+                "chart": current_chart._chart_data,
+                "time_chart": current_chart.time_chart,
+                "commands": commands,
+            },
+            indent=4,
+            ensure_ascii=False,
+        ),
+        "utf-8",
+    )
 
 
 def _async_publish_cmd(actions: list, connection: MNTConnection, resolution):

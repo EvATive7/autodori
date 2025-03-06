@@ -62,20 +62,29 @@ class Chart:
         return time_ * 1000
 
     def _chart_to_time_chart(self):
-        for index, note in enumerate(self._chart_data):
+        index = -1
+
+        def get_index():
+            nonlocal index
+            index += 1
+            return index
+
+        for _, note in enumerate(self._chart_data):
             note_type = note["type"]
-            note["index"] = index
 
             if note_type == "BPM":
                 bpm = note["bpm"]
                 beat = note["beat"]
+                note["index"] = get_index()
                 self._bpms.append((bpm, beat))
             elif note_type in ["Single", "Directional"]:
                 note["time"] = self._beat_to_time(note["beat"])
+                note["index"] = get_index()
                 self.time_chart.append(note)
             elif note_type in ["Slide", "Long"]:
                 for connection in note["connections"]:
                     connection["time"] = self._beat_to_time(connection["beat"])
+                    connection["index"] = get_index()
                 self.time_chart.append(note)
             else:
                 self._logger.warning(
