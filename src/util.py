@@ -26,7 +26,6 @@ runtime_info = {
     },
 }
 TIME_BETWEEN_FIRSTNOTE_DETECTED_TO_LANE = 30
-WAITSTART_THRESHOLD = 0.8
 SLICE_SIZE = 30
 
 
@@ -59,11 +58,21 @@ def actions_to_MNTcmd(commands, actions, resolution, touch_offset, move_offset):
         else:
             actions_grouped[-1]["actions"].append(action)
 
+    # time sort
+    for i, actions_group in enumerate(actions_grouped):
+        if i + 1 == len(actions_grouped):
+            wait_for = 2000
+        else:
+            next_actiongroup = actions_grouped[i + 1]
+            next_time = next_actiongroup["time"]
+            current_time = actions_group["time"]
+            wait_for = next_time - current_time
+        actions_group["wait_for"] = wait_for
+
     rounded_loss = 0.0
 
     # append
     for i1, actions_group in enumerate(actions_grouped):
-        time_ = actions_group["time"]
 
         for _, action in enumerate(actions_group["actions"]):
             action_type = action["type"]
@@ -100,8 +109,7 @@ def actions_to_MNTcmd(commands, actions, resolution, touch_offset, move_offset):
             append(builder.commit())
         else:
             next_actiongroup = actions_grouped[i1 + 1]
-            nexttime = next_actiongroup["time"]
-            wait_for = nexttime - time_
+            wait_for = actions_group["wait_for"]
             if offset != 0 and all(
                 [action["type"] == "down" for action in next_actiongroup["actions"]]
             ):
@@ -109,11 +117,12 @@ def actions_to_MNTcmd(commands, actions, resolution, touch_offset, move_offset):
                 wait_for -= min_
                 offset -= min_
 
-            if abs(rounded_loss) > 0.1 and all(
+            if abs(rounded_loss) >= 1 and all(
                 [action["type"] == "down" for action in next_actiongroup["actions"]]
             ):
                 if rounded_loss > 0:
                     wait_for += rounded_loss
+                    rounded_loss -= rounded_loss
                 else:
                     rounded_loss_abs = abs(rounded_loss)
                     if wait_for < rounded_loss_abs:

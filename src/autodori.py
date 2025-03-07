@@ -33,8 +33,8 @@ Path("cache").mkdir(exist_ok=True)
 
 LIVEBOOST_COST = 3
 DIFFICULTY = "hard"
-DEFAULT_MOVE_OFFSET = 0.15
-DEFAULT_DOWN_OFFSET = 0.0
+DEFAULT_MOVE_OFFSET = 0.12
+DEFAULT_DOWN_OFFSET = 0.12
 
 maaresource = Resource()
 maatasker = Tasker()
@@ -92,9 +92,7 @@ class SongRecognition(CustomRecognition):
                 argv.image,
                 pipeline,
             ).best_result.text
-            return fzwzprocess.extractOne(
-                song_fuzzyname, list(all_song_name_indexes.keys())
-            )
+            return fuzzy_match_song(song_fuzzyname)
 
         jpmatch = match("ppocr_v3/ja_jp")
         commonmatch = match()  # , "ppocr_v4/zh_cn")
@@ -119,7 +117,8 @@ class LiveBoostEnoughRecognition(CustomRecognition):
     def analyze(
         self, context: Context, argv: CustomRecognition.AnalyzeArg
     ) -> Union[CustomRecognition.AnalyzeResult, Optional[RectType]]:
-        roi = [970, 29, 39, 21]
+        # roi = [970, 29, 39, 21]
+        roi = [979, 30, 61, 20]
 
         pipeline = {
             "live_boost_enough_ocr": {
@@ -133,6 +132,9 @@ class LiveBoostEnoughRecognition(CustomRecognition):
             argv.image,
             pipeline,
         ).best_result.text
+
+        logging.debug("Live boost rec result: {}".format(live_boost))
+        live_boost = live_boost.replace("/10", "")
 
         try:
             live_boost = int(live_boost)
@@ -240,8 +242,7 @@ class SavePlayResult(CustomAction):
 class Play(CustomAction):
     def run(self, context: Context, argv: CustomAction.RunArg):
         try:
-            global current_cmd
-            play_song(current_cmd)
+            play_song()
             return CustomAction.RunResult(True)
         except:
             return CustomAction.RunResult(False)
@@ -254,6 +255,10 @@ class SaveSong(CustomAction):
         save_song(name)
         logging.debug("Save song: {}".format(name))
         return CustomAction.RunResult(True)
+
+
+def fuzzy_match_song(name):
+    return fzwzprocess.extractOne(name, list(all_song_name_indexes.keys()))
 
 
 def save_song(name):

@@ -75,7 +75,6 @@ class Chart:
             if note_type == "BPM":
                 bpm = note["bpm"]
                 beat = note["beat"]
-                note["index"] = get_index()
                 self._bpms.append((bpm, beat))
             elif note_type in ["Single", "Directional"]:
                 note["time"] = self._beat_to_time(note["beat"])
