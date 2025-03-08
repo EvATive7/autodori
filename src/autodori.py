@@ -31,16 +31,17 @@ from util import *
 Path("data").mkdir(exist_ok=True)
 Path("cache").mkdir(exist_ok=True)
 
-LIVEBOOST_COST = 3
+LIVEBOOST_COST = 0
 DIFFICULTY = "hard"
 DEFAULT_MOVE_OFFSET = 0.12
 DEFAULT_DOWN_OFFSET = 0.12
+PHOTOGATE_LATENCY = 30
+DEFAULT_MOVE_SLICE_SIZE = 30
 
 maaresource = Resource()
 maatasker = Tasker()
 maacontroller: AdbController = None
 device: AdbDevice = None
-# player = mumuextras.PLAYER
 player: mumuextras.MuMuPlayer = None
 mnt_server: MNTServer = None
 mnt_connection: MNTConnection = None
@@ -52,8 +53,6 @@ all_song_name_indexes: dict[str, str] = {
 current_song_name: str = None
 current_song_id: str = None
 current_chart: Chart = None
-current_cmd: CommandBuilder = None
-commands = []
 
 
 def check_song_available(name, id_, difficulty):
@@ -262,93 +261,21 @@ def fuzzy_match_song(name):
 
 
 def save_song(name):
-    global current_song_name, current_cmd, current_song_id, current_chart
+    global current_song_name, current_song_id, current_chart
     current_song_name = name
     current_song_id = all_song_name_indexes[current_song_name]
-    current_chart = Chart((current_song_id, DIFFICULTY))
-    actions = notes_to_actions(current_chart.time_chart, player.resolution)
-    current_cmd = actions_to_MNTcmd(
-        commands,
-        actions,
-        player.resolution,
-        DEFAULT_DOWN_OFFSET,
-        DEFAULT_MOVE_OFFSET,
+    current_chart = Chart((current_song_id, DIFFICULTY), current_song_name)
+    current_chart.notes_to_actions(player.resolution, DEFAULT_MOVE_SLICE_SIZE)
+    current_chart.actions_to_MNTcmd(
+        player.resolution, DEFAULT_DOWN_OFFSET, DEFAULT_MOVE_OFFSET
     )
-    pass
 
 
 def play_song():
     logging.info("Start play")
 
     wait_first_note()
-    current_cmd.publish(mnt_connection, block=True)
-
-
-def dump_debug_config():
-    global commands, current_song_name, current_song_id
-    dump_path = Path("debug/dump")
-    dump_path.mkdir(exist_ok=True)
-    (dump_path / f"dump-{time.time()}.json").write_text(
-        json.dumps(
-            {
-                "song_name": current_song_name,
-                "song_id": current_song_id,
-                "chart": current_chart._chart_data,
-                "time_chart": current_chart.time_chart,
-                "commands": commands,
-            },
-            indent=4,
-            ensure_ascii=False,
-        ),
-        "utf-8",
-    )
-
-
-def _async_publish_cmd(actions: list, connection: MNTConnection, resolution):
-    action = None
-    cur_time = 0
-
-    def run_action(action):
-        builder = CommandBuilder()
-        action_type = action["type"]
-        finger = action["finger"]
-
-        if action_type == "down":
-            player.ipc_input_event_finger_touch_down(
-                mumuextras.DISPLAY_ID,
-                finger,
-                *androidxy_to_MNTxy(action["pos"], resolution),
-            )
-            print("down", finger, *androidxy_to_MNTxy(action["pos"], resolution))
-            # builder.down(finger, *androidxy_to_MNTxy(action["pos"], resolution), 100)
-        elif action_type == "move":
-            pass
-            # builder.move(finger, *androidxy_to_MNTxy(action["to"], resolution), 100)
-        elif action_type == "up":
-            player.ipc_input_event_finger_touch_up(mumuextras.DISPLAY_ID, finger)
-            print("up", finger)
-
-            # builder.up(finger)
-        # builder.commit()
-        # builder.publish(connection)
-
-    while True:
-        if not actions:
-            break
-
-        filtered_actions = list(
-            filter(
-                lambda action: int(action["time"] - 2553.19) == int(cur_time), actions
-            )
-        )
-        for action in filtered_actions:
-            thread = Thread(target=run_action, args=(action,))
-            thread.start()
-
-        cur_time += 1
-        time.sleep(1 / 1000)
-
-    time.sleep(10)
+    current_chart.command_builder.publish(mnt_connection, block=True)
 
 
 def wait_first_note():
@@ -368,7 +295,7 @@ def wait_first_note():
                     waited_frames = 0
                 else:
                     logging.debug(f"The first note falls between {from_row}-{to_row}")
-                    time.sleep(TIME_BETWEEN_FIRSTNOTE_DETECTED_TO_LANE / 1000)
+                    time.sleep(PHOTOGATE_LATENCY / 1000)
                     break
             else:
                 waited_frames += 1
