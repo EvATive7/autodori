@@ -1,6 +1,8 @@
 {
     "main": {
         "next": [
+            "freelive",
+            "start_check_song",
             "live"
         ],
         "interrupt": [
@@ -142,6 +144,10 @@
         "next": "start_check_song"
     },
     "start_check_song": {
+        "recognition": "OCR",
+        "expected": [
+            "选择乐曲"
+        ],
         "next": "check_song",
         "interrupt": [
             "random_choice_song"
