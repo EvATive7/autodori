@@ -364,10 +364,6 @@ def main():
     init_maa()
     init_mumu_and_mnt()
 
-    # entry = "save_playresult"
-    # global current_song_id
-    # current_song_id = "251"
-
     maatasker.post_task(
         entry,
         {
