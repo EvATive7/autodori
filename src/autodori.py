@@ -31,10 +31,10 @@ from util import *
 Path("data").mkdir(exist_ok=True)
 Path("cache").mkdir(exist_ok=True)
 
-LIVEBOOST_COST = 0
+LIVEBOOST_COST = 1
 DIFFICULTY = "hard"
-DEFAULT_MOVE_OFFSET = 0.12
-DEFAULT_DOWN_OFFSET = 0.12
+DEFAULT_MOVE_OFFSET = 0.14
+DEFAULT_DOWN_OFFSET = 0.14
 PHOTOGATE_LATENCY = 30
 DEFAULT_MOVE_SLICE_SIZE = 30
 
