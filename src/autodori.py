@@ -99,6 +99,8 @@ class SongRecognition(CustomRecognition):
             )
         )
         result = sorted([jpmatch, commonmatch], key=lambda x: x[1], reverse=True)
+        if all([r[1] < 50 for r in result]):
+            return CustomRecognition.AnalyzeResult(None, "")
         result_music_name = result[0][0]
 
         if not check_song_available(
