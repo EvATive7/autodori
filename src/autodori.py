@@ -1,12 +1,9 @@
 import json
 import logging
-import os
 import random
-import re
 import string
 import time
 from pathlib import Path
-from threading import Thread
 from typing import Optional, Union
 
 import numpy as np
@@ -16,11 +13,9 @@ from maa.controller import AdbController
 from maa.custom_action import CustomAction, CustomRecognitionResult
 from maa.custom_recognition import CustomRecognition
 from maa.define import RectType
-from maa.notification_handler import NotificationHandler, NotificationType
 from maa.resource import Resource
 from maa.tasker import Tasker
 from maa.toolkit import AdbDevice, Toolkit
-from minitouchpy import CommandBuilder, safe_connection
 from minitouchpy.connection import MNTConnection, MNTServer
 
 import mumuextras
@@ -193,12 +188,12 @@ class PlayResultRecognition(CustomRecognition):
             for type_, type_value in types.items()
         }
         for type_, _ in types.items():
-            ocrtext = context.run_recognition(
-                f"_PlayResultRecognition_ocr_{type_}",
-                argv.image,
-                pipeline,
-            ).best_result.text
             try:
+                ocrtext = context.run_recognition(
+                    f"_PlayResultRecognition_ocr_{type_}",
+                    argv.image,
+                    pipeline,
+                ).best_result.text
                 type_result = int(ocrtext)
             except:
                 type_result = -1
@@ -364,18 +359,7 @@ def main():
     init_maa()
     init_mumu_and_mnt()
 
-    maatasker.post_task(
-        entry,
-        {
-            "_test": {
-                "recognition": "Custom",
-                "custom_recognition": "SongRecognition",
-                "action": "Custom",
-                "custom_action": "Play",
-                "roi": [201, 332, 367, 29],
-            }
-        },
-    ).wait().get()
+    maatasker.post_task(entry, {}).wait().get()
 
     exit()
 

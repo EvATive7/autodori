@@ -1,0 +1,74 @@
+{
+    "start_app": {
+        "action": "StartApp",
+        "package": "com.bilibili.star.bili",
+        "next": [
+            "find_startpage_menu"
+        ]
+    },
+    "find_startpage_menu": {
+        "recognition": "TemplateMatch",
+        "template": "startpage/menu.png",
+        "next": "find_startpage_age_tag",
+        "roi": [
+            1004,
+            495,
+            276,
+            225
+        ],
+        "timeout": 40000
+    },
+    "find_startpage_age_tag": {
+        "recognition": "TemplateMatch",
+        "template": "startpage/age_tag.png",
+        "next": "find_startpage_criware",
+        "roi": [
+            936,
+            0,
+            344,
+            256
+        ]
+    },
+    "find_startpage_criware": {
+        "recognition": "TemplateMatch",
+        "template": "startpage/criware.png",
+        "next": "tap_start",
+        "roi": [
+            936,
+            0,
+            344,
+            256
+        ]
+    },
+    "tap_start": {
+        "action": "Click",
+        "target": [
+            457,
+            368,
+            388,
+            284
+        ],
+        "next": "start_task_stop",
+        "interrupt": [
+            "next_button",
+            "tap_to_next",
+            "close_button",
+            "reader_skip",
+            "safe_random_click"
+        ]
+    },
+    "safe_random_click": {
+        "action": "Click",
+        "roi": [
+            451,
+            576,
+            164,
+            129
+        ]
+    },
+    "start_task_stop": {
+        "action": "StopTask",
+        "recognition": "TemplateMatch",
+        "template": "live\\button\\live_home.png"
+    }
+}

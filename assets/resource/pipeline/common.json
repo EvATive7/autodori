@@ -1,0 +1,88 @@
+{
+    "close_app": {
+        "action": "StopApp",
+        "package": "com.bilibili.star.bili",
+        "next": "stop"
+    },
+    "close_button": {
+        "recognition": "TemplateMatch",
+        "template": "common\\button\\close\\white.png",
+        "action": "Click"
+    },
+    "confirm_button": {
+        "recognition": "TemplateMatch",
+        "template": [
+            "common\\button\\confirm\\pink.png",
+            "common\\button\\confirm\\white.png"
+        ],
+        "action": "Click"
+    },
+    "skip_button": {
+        "recognition": "TemplateMatch",
+        "template": "common\\button\\skip\\pink.png",
+        "action": "Click"
+    },
+    "next_button": {
+        "recognition": "TemplateMatch",
+        "template": "common\\button\\next\\pink.png",
+        "action": "Click",
+        "timeout": 6000
+    },
+    "ok_button": {
+        "recognition": "TemplateMatch",
+        "template": [
+            "common\\button\\ok\\white.png"
+        ],
+        "action": "Click"
+    },
+    "exit_button": {
+        "recognition": "TemplateMatch",
+        "template": [
+            "common\\button\\exit\\pink.png",
+            "common\\button\\exit\\white.png"
+        ],
+        "action": "Click"
+    },
+    "tap_to_next": {
+        "recognition": "OCR",
+        "expected": "TAP TO NEXT",
+        "action": "Click",
+        "timeout": 6000
+    },
+    "to_tome": {
+        "next": [
+            "menu_home"
+        ],
+        "interrupt": [
+            "menu"
+        ]
+    },
+    "menu": {
+        "recognition": "TemplateMatch",
+        "template": "common\\button\\menu\\main.png",
+        "action": "Click",
+        "post_delay": 1000
+    },
+    "menu_home": {
+        "recognition": "TemplateMatch",
+        "template": "common\\button\\menu\\home.png",
+        "action": "Click",
+        "post_delay": 1500
+    },
+    "reader_menu": {
+        "recognition": "TemplateMatch",
+        "template": "common\\reader\\menu.png",
+        "action": "Click"
+    },
+    "reader_skip": {
+        "recognition": "TemplateMatch",
+        "template": "common\\reader\\skip.png",
+        "action": "Click",
+        "interrupt": [
+            "reader_menu"
+        ]
+    },
+    "stop": {
+        "action": "StopTask"
+    }
+}
