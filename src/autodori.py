@@ -364,6 +364,8 @@ def main():
 
     maatasker.post_task(entry, {}).wait().get()
 
+    mnt_connection.disconnect()
+    mnt_server.stop()
     logging.debug("Ready to exit")
     exit()
 
