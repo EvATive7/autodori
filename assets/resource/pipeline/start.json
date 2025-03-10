@@ -67,7 +67,6 @@
         ]
     },
     "start_task_stop": {
-        "action": "StopTask",
         "recognition": "TemplateMatch",
         "template": "live\\button\\live_home.png"
     }

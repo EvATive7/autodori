@@ -12,6 +12,7 @@
         "recognition": "TemplateMatch",
         "template": "live\\button\\freelive.png",
         "action": "Click",
+        "post_delay": 1000,
         "next": [
             "select_song",
             "freelive",
@@ -35,7 +36,7 @@
         "recognition": "TemplateMatch",
         "template": "live\\button\\random_choice_song.png",
         "action": "Click",
-        "post_delay": 1500,
+        "post_delay": 2000,
         "next": [
             "get_song_name",
             "random_choice_song",

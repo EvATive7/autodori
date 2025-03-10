@@ -81,11 +81,14 @@ class SongRecognition(CustomRecognition):
             }
             if model != None:
                 pipeline[pplname]["model"] = model
-            song_fuzzyname = context.run_recognition(
-                pplname,
-                argv.image,
-                pipeline,
-            ).best_result.text
+            try:
+                song_fuzzyname = context.run_recognition(
+                    pplname,
+                    argv.image,
+                    pipeline,
+                ).best_result.text
+            except:
+                song_fuzzyname = ""
             return fuzzy_match_song(song_fuzzyname)
 
         jpmatch = match("ppocr_v3/ja_jp")
@@ -361,6 +364,7 @@ def main():
 
     maatasker.post_task(entry, {}).wait().get()
 
+    logging.debug("Ready to exit")
     exit()
 
 

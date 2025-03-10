@@ -50,18 +50,13 @@
         "timeout": 6000
     },
     "to_tome": {
-        "next": [
-            "menu_home"
-        ],
-        "interrupt": [
-            "menu"
-        ]
-    },
-    "menu": {
         "recognition": "TemplateMatch",
         "template": "common\\button\\menu\\main.png",
         "action": "Click",
-        "post_delay": 1000
+        "post_delay": 1000,
+        "next": [
+            "menu_home"
+        ]
     },
     "menu_home": {
         "recognition": "TemplateMatch",
