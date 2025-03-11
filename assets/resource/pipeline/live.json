@@ -78,7 +78,7 @@
         ],
         "timeout": 3000,
         "on_error": [
-            "stop"
+            "close_app"
         ]
     },
     "ensure_live_mode": {
