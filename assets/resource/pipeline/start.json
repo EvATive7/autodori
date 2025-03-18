@@ -55,7 +55,8 @@
             "close_button",
             "reader_skip",
             "safe_random_click"
-        ]
+        ],
+        "timeout": 120000
     },
     "safe_random_click": {
         "action": "Click",
