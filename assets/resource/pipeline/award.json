@@ -1,0 +1,59 @@
+{
+    "award_entry": {},
+    "gift_home": {
+        "recognition": "TemplateMatch",
+        "template": "award\\button\\gift_home.png",
+        "roi": [
+            1035,
+            49,
+            245,
+            527
+        ],
+        "action": "Click",
+        "next": "gift_detect_award",
+        "post_delay": 1000,
+        "interrupt": [
+            "gift_oneclick_receive_award"
+        ]
+    },
+    "gift_detect_award": {
+        "recognition": "OCR",
+        "expected": "没有可领取的礼物",
+        "next": "to_tome"
+    },
+    "gift_oneclick_receive_award": {
+        "recognition": "OCR",
+        "expected": ".*键领取",
+        "action": "Click",
+        "next": [
+            "gift_finished_oneclick_receive"
+        ]
+    },
+    "gift_finished_oneclick_receive": {
+        "recognition": "OCR",
+        "expected": "已完成一键领取",
+        "is_sub": true,
+        "next": [
+            "confirm_button",
+            "to_tome",
+            "task_home"
+        ]
+    },
+    "task_home": {
+        "recognition": "TemplateMatch",
+        "template": "award\\button\\task_home.png",
+        "roi": [
+            1035,
+            49,
+            245,
+            527
+        ],
+        "action": "Click"
+    },
+    "finished_oneclick_receive_okbutton": {
+        "recognition": "TemplateMatch",
+        "template": "common\\button\\ok\\white.png",
+        "action": "Click",
+        "next": "stop"
+    }
+}

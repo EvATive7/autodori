@@ -54,6 +54,7 @@
         "template": "common\\button\\menu\\main.png",
         "action": "Click",
         "post_delay": 1000,
+        "is_sub": true,
         "next": [
             "menu_home"
         ]
