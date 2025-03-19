@@ -17,6 +17,9 @@
             "select_song",
             "freelive",
             "live_home_button"
+        ],
+        "interrupt": [
+            "login_expired"
         ]
     },
     "select_song": {
@@ -143,7 +146,8 @@
         "template": "live\\button\\startlive.png",
         "next": "wait_live_start",
         "interrupt": [
-            "confirm_button"
+            "confirm_button",
+            "login_expired"
         ],
         "post_delay": 2000
     },
@@ -161,7 +165,8 @@
             "next_button",
             "close_button",
             "ok_button",
-            "confirm_button"
+            "confirm_button",
+            "login_expired"
         ],
         "timeout": 50000
     },
@@ -221,6 +226,9 @@
         "next": [
             "save_failed_playresult",
             "exit_button"
+        ],
+        "interrupt": [
+            "login_expired"
         ]
     },
     "save_failed_playresult": {

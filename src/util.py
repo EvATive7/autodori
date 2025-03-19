@@ -10,21 +10,28 @@ import yaml
 from minitouchpy import CommandBuilder
 from PIL import Image
 
-runtime_info = {
-    "lane": {
-        (1280, 720): {
-            "w": 147,
-            "start_x": 127,
-            "h": 590,
-        }
-    },
-    "wait_first": {
-        (1280, 720): {
-            "from": 510,
-            "to": 535,
-        }
-    },
-}
+
+def get_runtime_info(resolution: tuple[int, int]):
+    x_zoom_multiple = resolution[0] / 1280
+    y_zoom_multiple = resolution[1] / 720
+
+    def get_rounded_int_x(origin):
+        return int(round(origin * x_zoom_multiple, 0))
+
+    def get_rounded_int_y(origin):
+        return int(round(origin * y_zoom_multiple, 0))
+
+    return {
+        "lane": {
+            "w": get_rounded_int_x(147),
+            "start_x": get_rounded_int_x(127),
+            "h": get_rounded_int_y(590),
+        },
+        "wait_first": {
+            "from": get_rounded_int_y(510),
+            "to": get_rounded_int_y(535),
+        },
+    }
 
 
 def display_cmds(commands):

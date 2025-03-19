@@ -1,3 +1,4 @@
+import argparse
 import json
 import logging
 import random
@@ -6,8 +7,15 @@ import time
 from pathlib import Path
 from typing import Optional, Union
 
-Path("data").mkdir(exist_ok=True)
-Path("cache").mkdir(exist_ok=True)
+data_path = Path("data")
+data_path.mkdir(exist_ok=True)
+cache_path = Path("cache")
+cache_path.mkdir(exist_ok=True)
+config_path = Path("data/config.yml")
+if not config_path.exists():
+    config_path.touch()
+    config_path.write_text("{}", encoding="utf-8")
+
 
 import numpy as np
 from fuzzywuzzy import process as fzwzprocess
@@ -26,13 +34,13 @@ from api import BestdoriAPI
 from chart import Chart, PlayRecord
 from util import *
 
-
 LIVEBOOST_COST = 1
 DIFFICULTY = "hard"
 DEFAULT_MOVE_OFFSET = 0.14
 DEFAULT_DOWN_OFFSET = 0.14
 PHOTOGATE_LATENCY = 30
 DEFAULT_MOVE_SLICE_SIZE = 30
+MAX_FAILED_TIMES = 10
 
 maaresource = Resource()
 maatasker = Tasker()
@@ -49,6 +57,7 @@ all_song_name_indexes: dict[str, str] = {
 current_song_name: str = None
 current_song_id: str = None
 current_chart: Chart = None
+play_failed_times: int = 0
 
 
 def check_song_available(name, id_, difficulty):
@@ -213,13 +222,14 @@ class PlayResultRecognition(CustomRecognition):
 class SavePlayResult(CustomAction):
     def run(self, context: Context, argv: CustomAction.RunArg):
         try:
-            global current_song_id
+            global current_song_id, play_failed_times
             succeed: bool = json.loads(argv.custom_action_param).get("succeed")
             if succeed:
                 playresult = argv.reco_detail.best_result.detail
                 if isinstance(playresult, str):
                     playresult = json.loads(argv.reco_detail.best_result.detail)
             else:
+                play_failed_times += 1
                 playresult = {}
             PlayRecord.create(
                 play_time=int(time.time()),
@@ -232,6 +242,8 @@ class SavePlayResult(CustomAction):
                 chart_id=current_song_id,
                 difficulty=DIFFICULTY,
             )
+            if play_failed_times >= MAX_FAILED_TIMES:
+                context.run_action("close_app")
             return CustomAction.RunResult(True)
         except Exception as e:
             logging.error(f"Failed to save play result: {e}")
@@ -282,11 +294,12 @@ def play_song():
 def wait_first_note():
     last_color = None
     waited_frames = 0
-    info = runtime_info["wait_first"][player.resolution]
+    info = get_runtime_info(player.resolution)["wait_first"]
     from_row, to_row = info["from"], info["to"]
 
+    display_id = player.ipc_get_display_id("com.bilibili.star.bili")
     while True:
-        screen = player.ipc_capture_display(mumuextras.DISPLAY_ID)
+        screen = player.ipc_capture_display(display_id)
         cur_color, _ = get_color_eval_in_range(screen, from_row, to_row)
 
         if last_color is not None:
@@ -361,7 +374,24 @@ def main():
     logging.basicConfig(
         level=logging.DEBUG, format="%(asctime)s[%(levelname)s][%(name)s] %(message)s"
     )
-    entry = "main"
+
+    parser = argparse.ArgumentParser(
+        description="AutoDori script with different modes."
+    )
+    parser.add_argument(
+        "--mode",
+        type=str,
+        choices=["main"],
+        help="Specify the mode to run",
+        default="main",
+    )
+    args = parser.parse_args()
+
+    if args.mode == "main":
+        entry = "main"
+    else:
+        exit(1)
+
     init_maa()
     init_mumu_and_mnt()
 

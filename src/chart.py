@@ -1,14 +1,13 @@
 import json
 import logging
-from pathlib import Path
 import time
-import util
+from pathlib import Path
 
-from fuzzywuzzy import process as fzwzprocess
 from minitouchpy import CommandBuilder
 from peewee import *
 from playhouse.sqlite_ext import JSONField
 
+import util
 from api import BestdoriAPI
 
 
@@ -227,7 +226,7 @@ class Chart:
         notes: list[dict] = self._chart_data
 
         def get_lane_position(lane: int) -> tuple[int, int]:
-            lane_config = util.runtime_info["lane"][screen_resolution]
+            lane_config = util.get_runtime_info(screen_resolution)["lane"]
             return (
                 lane_config["start_x"] + (lane + 0.5) * lane_config["w"],
                 lane_config["h"],

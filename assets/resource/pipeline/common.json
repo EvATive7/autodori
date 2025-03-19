@@ -77,6 +77,19 @@
             "reader_menu"
         ]
     },
+    "backtitle": {
+        "recognition": "TemplateMatch",
+        "template": "common\\button\\backtitle\\white.png",
+        "action": "Click"
+    },
+    "login_expired": {
+        "recognition": "OCR",
+        "expected": "登录已失效",
+        "action": "StopTask",
+        "next": [
+            "backtitle"
+        ]
+    },
     "stop": {
         "action": "StopTask"
     }
