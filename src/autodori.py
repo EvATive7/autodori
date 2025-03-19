@@ -6,6 +6,9 @@ import time
 from pathlib import Path
 from typing import Optional, Union
 
+Path("data").mkdir(exist_ok=True)
+Path("cache").mkdir(exist_ok=True)
+
 import numpy as np
 from fuzzywuzzy import process as fzwzprocess
 from maa.context import Context
@@ -23,8 +26,6 @@ from api import BestdoriAPI
 from chart import Chart, PlayRecord
 from util import *
 
-Path("data").mkdir(exist_ok=True)
-Path("cache").mkdir(exist_ok=True)
 
 LIVEBOOST_COST = 1
 DIFFICULTY = "hard"
