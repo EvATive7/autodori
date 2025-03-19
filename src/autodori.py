@@ -3,6 +3,7 @@ import json
 import logging
 import random
 import string
+import sys
 import time
 from pathlib import Path
 from typing import Optional, Union
@@ -326,7 +327,7 @@ def init_maa():
     adb_devices = Toolkit.find_adb_devices()
     if not adb_devices:
         logging.fatal("No ADB device found.")
-        exit(1)
+        sys.exit(1)
 
     global device, maacontroller
     _device = [
@@ -334,7 +335,7 @@ def init_maa():
     ]
     if not _device:
         logging.fatal("No supported devices were found.")
-        exit(1)
+        sys.exit(1)
     else:
         device = _device[0]
     maacontroller = AdbController(
@@ -351,7 +352,7 @@ def init_maa():
 
     if not maatasker.inited:
         logging.fatal("Failed to init MAA.")
-        exit(1)
+        sys.exit(1)
 
     logging.info("MAA inited.")
 
@@ -390,7 +391,7 @@ def main():
     if args.mode == "main":
         entry = "main"
     else:
-        exit(1)
+        sys.exit(1)
 
     init_maa()
     init_mumu_and_mnt()
@@ -400,7 +401,7 @@ def main():
     mnt_connection.disconnect()
     mnt_server.stop()
     logging.debug("Ready to exit")
-    exit()
+    sys.exit()
 
 
 if __name__ == "__main__":

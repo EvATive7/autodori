@@ -77,9 +77,14 @@
             "reader_menu"
         ]
     },
-    "backtitle": {
+    "backtitle_button": {
         "recognition": "TemplateMatch",
         "template": "common\\button\\backtitle\\white.png",
+        "action": "Click"
+    },
+    "retry_button": {
+        "recognition": "TemplateMatch",
+        "template": "common\\button\\retry\\pink.png",
         "action": "Click"
     },
     "login_expired": {
@@ -87,7 +92,14 @@
         "expected": "登录已失效",
         "action": "StopTask",
         "next": [
-            "backtitle"
+            "backtitle_button"
+        ]
+    },
+    "connect_failed": {
+        "recognition": "OCR",
+        "expected": "连接失败",
+        "next": [
+            "retry_button"
         ]
     },
     "stop": {

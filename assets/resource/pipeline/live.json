@@ -19,7 +19,8 @@
             "live_home_button"
         ],
         "interrupt": [
-            "login_expired"
+            "login_expired",
+            "connect_failed"
         ]
     },
     "select_song": {
@@ -147,7 +148,8 @@
         "next": "wait_live_start",
         "interrupt": [
             "confirm_button",
-            "login_expired"
+            "login_expired",
+            "connect_failed"
         ],
         "post_delay": 2000
     },
@@ -166,7 +168,8 @@
             "close_button",
             "ok_button",
             "confirm_button",
-            "login_expired"
+            "login_expired",
+            "connect_failed"
         ],
         "timeout": 50000
     },
@@ -228,7 +231,8 @@
             "exit_button"
         ],
         "interrupt": [
-            "login_expired"
+            "login_expired",
+            "connect_failed"
         ]
     },
     "save_failed_playresult": {

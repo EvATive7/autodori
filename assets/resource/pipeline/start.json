@@ -4,6 +4,10 @@
         "package": "com.bilibili.star.bili",
         "next": [
             "find_startpage_menu"
+        ],
+        "interrupt": [
+            "ok_button",
+            "confirm_button"
         ]
     },
     "find_startpage_menu": {
