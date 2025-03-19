@@ -12,7 +12,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-22.04, windows-2022, macos-13]
+        os: [windows-2022]
 
     steps:
       - name: Checkout code
@@ -38,7 +38,7 @@ jobs:
       - name: Run build script
         run: |
           pip install pyinstaller
-          python build.py --version ${{ env.TAG }} --os ${{ runner.os }}
+          python build.py --os ${{ runner.os }} --arch ${{ runner.arch }}
 
       - name: Create Release
         uses: softprops/action-gh-release@v2

@@ -12,17 +12,21 @@ import PyInstaller.__main__
 
 
 parser = argparse.ArgumentParser()
-parser.add_argument(
-    "--version", type=str, help="Specify the version of the script", default="none"
-)
+# parser.add_argument( "--version", type=str, help="Specify the version of the script", default="none")
 parser.add_argument(
     "--os",
     type=str,
     help="Specify the operating system on which the building is running",
     default="none",
 )
-VERSION = parser.parse_args().version
-ZIP_FILENAME = "autodori-{version}.zip".format(version=VERSION)
+parser.add_argument(
+    "--arch",
+    type=str,
+    help="Specify the arch on which the building is running",
+    default="none",
+)
+args = parser.parse_args()
+ZIP_FILENAME = f"autodori_{args.os}_{args.arch}.zip"
 
 
 # 获取当前工作目录
