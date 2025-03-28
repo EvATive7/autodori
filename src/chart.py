@@ -9,6 +9,7 @@ from playhouse.sqlite_ext import JSONField
 
 import util
 from api import BestdoriAPI
+import yaml
 
 
 class PlayRecord(Model):
@@ -255,7 +256,7 @@ class Chart:
                     return finger["id"]
             return None
 
-        def add_tap(notedata, from_time, duration, pos):
+        def add_tap(note_index, from_time, duration, pos):
             finger = get_finger(from_time, from_time + duration)
             actions.extend(
                 [
@@ -264,13 +265,13 @@ class Chart:
                         "type": "down",
                         "time": from_time,
                         "pos": pos,
-                        "note": notedata,
+                        "note": note_index,
                     },
                     {
                         "finger": finger,
                         "type": "up",
                         "time": from_time + duration,
-                        "note": notedata,
+                        "note": note_index,
                     },
                 ]
             )
@@ -288,7 +289,7 @@ class Chart:
             return result
 
         def add_smooth_move(
-            note,
+            note_index,
             finger,
             from_time,
             duration,
@@ -313,7 +314,7 @@ class Chart:
                         "type": "down",
                         "time": from_time,
                         "pos": from_,
-                        "note": note,
+                        "note": note_index,
                     }
                 )
             for i, (cur_slice_start, cur_slice_size) in enumerate(slices):
@@ -326,7 +327,7 @@ class Chart:
                             from_x + x_size * (cur_slice_size + cur_slice_start),
                             from_y + y_size * (cur_slice_size + cur_slice_start),
                         ),
-                        "note": note,
+                        "note": note_index,
                     }
                 )
             if up:
@@ -335,7 +336,7 @@ class Chart:
                         "finger": finger,
                         "type": "up",
                         "time": to_time,
-                        "note": note,
+                        "note": note_index,
                     },
                 )
             actions.extend(result)
@@ -356,7 +357,7 @@ class Chart:
                         note_index, finger, time_, 80, pos, (pos[0], pos[1] - 300)
                     )
                 else:
-                    add_tap(note_data, time_, 50, pos)
+                    add_tap(note_index, time_, 50, pos)
 
             elif note_type == "Directional":
                 time_ = note_data["time"]
@@ -452,9 +453,9 @@ class Chart:
         dump_path = Path("debug/dump")
         dump_path.mkdir(parents=True, exist_ok=True)
         (
-            dump_path / f"{self._song_name}-{self._difficulty}-{time.time()}.json"
+            dump_path / f"{self._song_name}-{self._difficulty}-{time.time()}.yml"
         ).write_text(
-            json.dumps(
+            yaml.safe_dump(
                 {
                     "song_name": self._song_name,
                     "song_id": self._id_,
@@ -462,8 +463,7 @@ class Chart:
                     "actions": self._actions,
                     "commands": self._commands,
                 },
-                indent=4,
-                ensure_ascii=False,
+                allow_unicode=False,
             ),
             "utf-8",
         )
