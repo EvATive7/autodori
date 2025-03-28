@@ -165,7 +165,7 @@ class Chart:
                             *util.androidxy_to_MNTxy(
                                 round_tuple(action["pos"]), resolution
                             ),
-                            100,
+                            0,
                         ),
                         action_index,
                     )
@@ -177,7 +177,7 @@ class Chart:
                             *util.androidxy_to_MNTxy(
                                 round_tuple(action["to"]), resolution
                             ),
-                            100,
+                            0,
                         ),
                         action_index,
                     )
@@ -463,7 +463,9 @@ class Chart:
                     "actions": self._actions,
                     "commands": self._commands,
                 },
-                allow_unicode=False,
+                sort_keys=False,
+                allow_unicode=True,
+                indent=2,
             ),
             "utf-8",
         )
