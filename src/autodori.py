@@ -37,8 +37,8 @@ from util import *
 
 LIVEBOOST_COST = 1
 DIFFICULTY = "hard"
-DEFAULT_MOVE_OFFSET = 0.14
-DEFAULT_DOWN_OFFSET = 0.14
+DEFAULT_MOVE_OFFSET = 0.15
+DEFAULT_DOWN_OFFSET = 0.15
 PHOTOGATE_LATENCY = 30
 DEFAULT_MOVE_SLICE_SIZE = 30
 MAX_FAILED_TIMES = 10
@@ -297,6 +297,7 @@ def wait_first_note():
     waited_frames = 0
     info = get_runtime_info(player.resolution)["wait_first"]
     from_row, to_row = info["from"], info["to"]
+    freezed = False
 
     display_id = player.ipc_get_display_id("com.bilibili.star.bili")
     while True:
@@ -305,15 +306,20 @@ def wait_first_note():
 
         if last_color is not None:
             change_score = np.sum(cur_color[0:3] - last_color[0:3])
+            logging.debug(f"Picture changed: {change_score}")
             if change_score > 3:
-                if waited_frames < 200:
-                    waited_frames = 0
-                else:
+                if freezed:
                     logging.debug(f"The first note falls between {from_row}-{to_row}")
                     time.sleep(PHOTOGATE_LATENCY / 1000)
                     break
             else:
-                waited_frames += 1
+                if not freezed:
+                    waited_frames += 1
+
+            if not freezed and waited_frames >= 200:
+                freezed = True
+                logging.debug("Picture freezed, waiting for the first note...")
+
         last_color = cur_color
 
 
