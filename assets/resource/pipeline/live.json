@@ -9,8 +9,14 @@
         ]
     },
     "freelive": {
-        "recognition": "TemplateMatch",
-        "template": "live\\button\\freelive.png",
+        "recognition": "OCR",
+        "expected": "自由演出",
+        "roi": [
+            679,
+            183,
+            257,
+            354
+        ],
         "action": "Click",
         "post_delay": 1000,
         "next": [
