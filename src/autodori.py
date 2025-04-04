@@ -481,6 +481,30 @@ def configure_log():
     )
 
 
+def _get_set_difficulty_pipeline():
+    difficulty: str = DIFFICULTY
+    roi = {
+        "easy": [659, 495, 107, 97],
+        "normal": [768, 494, 107, 97],
+        "hard": [996, 494, 107, 97],
+        "expert": [996, 493, 107, 97],
+    }[difficulty]
+
+    return {
+        "set_difficulty": {
+            "action": "Click",
+            "recognition": "TemplateMatch",
+            "next": "comfirm_song",
+            "interrupt": ["confirm_button"],
+            "roi": roi,
+            "template": [
+                "live\\difficulty\\{}_active.png".format(difficulty),
+                "live\\difficulty\\{}_deactive.png".format(difficulty),
+            ],
+        }
+    }
+
+
 def main():
     configure_log()
 
@@ -494,6 +518,13 @@ def main():
         help="Specify the mode to run",
         default="main",
     )
+    parser.add_argument(
+        "--difficulty",
+        type=str,
+        choices=["easy", "normal", "hard", "expert"],
+        help="Specify the difficulty for main mode",
+        default="hard",
+    )
     args = parser.parse_args()
 
     if args.mode == "main":
@@ -501,10 +532,12 @@ def main():
     else:
         sys.exit(1)
 
+    global DIFFICULTY
+    DIFFICULTY = args.difficulty
     init_maa()
     init_mumu_and_mnt()
 
-    maatasker.post_task(entry, {}).wait().get()
+    maatasker.post_task(entry, _get_set_difficulty_pipeline()).wait().get()
 
     mnt.stop()
     logging.debug("Ready to exit")

@@ -60,9 +60,9 @@
         "recognition": "Custom",
         "custom_recognition": "SongRecognition",
         "custom_action": "SaveSong",
-        "next": "set_diffculty"
+        "next": "set_difficulty"
     },
-    "set_diffculty": {
+    "set_difficulty": {
         "action": "Click",
         "roi": [
             886,
