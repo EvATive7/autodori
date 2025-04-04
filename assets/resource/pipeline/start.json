@@ -64,7 +64,7 @@
     },
     "safe_random_click": {
         "action": "Click",
-        "roi": [
+        "target": [
             451,
             576,
             164,
