@@ -347,6 +347,7 @@ class Chart:
                     actions_with_wait.append(
                         {
                             "type": "wait",
+                            "time": current_time,
                             "length": next_time - current_time,
                         }
                     )
@@ -371,6 +372,7 @@ class Chart:
         down_offset = offset_info.get("down", 0)
         move_offset = offset_info.get("move", 0)
         wait_offset = offset_info.get("wait", 0)
+        interval_offset = offset_info.get("interval", 0)
 
         def append(command_to_append, action=None):
             commands.append(
@@ -387,6 +389,8 @@ class Chart:
         for i, action in enumerate(actions):
             action_type = action["type"]
             action_index = action["index"]
+
+            self._actions_to_cmd_offset += interval_offset
 
             if action_type == "down":
                 self._actions_to_cmd_offset += down_offset

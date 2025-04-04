@@ -49,7 +49,7 @@ OFFSET = {"up": 0, "down": 0, "move": 0, "wait": 0.0, "interval": 0.0}
 PHOTOGATE_LATENCY = 30
 DEFAULT_MOVE_SLICE_SIZE = 10
 MAX_FAILED_TIMES = 10
-CMD_SLICE_SIZE = 50
+CMD_SLICE_SIZE = 100
 
 maaresource = Resource()
 maatasker = Tasker()
@@ -68,15 +68,19 @@ current_chart: Chart = None
 play_failed_times: int = 0
 callback_data: dict = {}
 callback_data_lock = threading.Lock()
+cmd_log_list: list[MNTEvATive7LogEventData] = []
+cmd_log_list_lock = threading.Lock()
 
 
 def reset_callback_data():
     global callback_data
     callback_data = {
         "wait": {"total": 0, "total_offset": 0.0},
-        "move": {"uncounted": 0, "total": 0, "total_offset": 0.0},
-        "up": {"uncounted": 0, "total": 0, "total_offset": 0.0},
-        "down": {"uncounted": 0, "total": 0, "total_offset": 0.0},
+        "move": {"uncommited": 0, "total": 0, "total_offset": 0.0},
+        "up": {"uncommited": 0, "total": 0, "total_offset": 0.0},
+        "down": {"uncommited": 0, "total": 0, "total_offset": 0.0},
+        "interval": {"total": 0, "total_offset": 0.0},
+        "last_cmd_endtime": -1,
     }
 
 
@@ -305,6 +309,8 @@ def save_song(name):
 
 def play_song():
     logging.info("Start play")
+    cmd_log_list.clear()
+    reset_callback_data()
 
     def _get_wait_time():
         wait_for = 0.0
@@ -317,14 +323,38 @@ def play_song():
     def _adjust_offset():
         callback_data_lock.acquire()
         global callback_data
-        for type_ in ["up", "down", "move", "wait"]:
+        for type_ in ["up", "down", "move", "wait", "interval"]:
             type_data = callback_data[type_]
             total = type_data["total"]
             if total != 0:
                 OFFSET[type_] = type_data["total_offset"] / total
-        # reset_callback_data()
+        reset_callback_data()
         callback_data_lock.release()
         logging.debug("Adjust offset: {}".format(OFFSET))
+
+    def _adjust_actions_to_cmd_offset():
+        with cmd_log_list_lock:
+            _log_list = cmd_log_list.copy()
+
+        [_log_list.remove(i) for i in _log_list.copy() if i.cmd == "c"]
+
+        def _get_cmd_during(_cmd_last_index: int):
+            cmd_begin_time = _log_list[0].start_time
+            cmd_last_time = _log_list[_cmd_last_index].start_time
+            return cmd_last_time - cmd_begin_time
+
+        def _get_action_during(_action_last_index: int):
+            action_begin_time = current_chart.actions[0]["time"]
+            action_last_time = current_chart.actions[_action_last_index]["time"]
+            return action_last_time - action_begin_time
+
+        cmd_index = len(_log_list) - 1
+        cmd_during = _get_cmd_during(-1)
+        action_during = _get_action_during(cmd_index)
+
+        logging.debug(f"cmd_during: {cmd_during}, action_during: {action_during}")
+
+        current_chart._actions_to_cmd_offset += cmd_during - action_during
 
     wait_first_note()
 
@@ -335,6 +365,7 @@ def play_song():
         index = current_chart.actions_to_cmd_index
         if current_chart.actions[index : index + CMD_SLICE_SIZE]:
             _adjust_offset()
+            # _adjust_actions_to_cmd_offset()
             current_chart.actions_to_MNTcmd(player.resolution, OFFSET, CMD_SLICE_SIZE)
         else:
             break
@@ -420,35 +451,41 @@ def mnt_callback(event: MNTEvent, data: MNTEventData):
         cmd = data.cmd
         cost = data.cost
 
+        with cmd_log_list_lock:
+            cmd_log_list.append(data)
         cmd_type = cmd.split(" ")[0]
 
         callback_data_lock.acquire()
+
+        if (last_cmd_endtime := callback_data.get("last_cmd_endtime")) != -1:
+            callback_data["interval"]["total"] += 1
+            callback_data["interval"]["total_offset"] += (
+                data.start_time - last_cmd_endtime
+            )
+        callback_data["last_cmd_endtime"] = data.end_time
         if cmd_type in ["w"]:
             callback_data["wait"]["total"] += 1
             callback_data["wait"]["total_offset"] += cost - int(cmd.split(" ")[-1])
-        elif cmd_type in ["u"]:
-            callback_data["up"]["uncounted"] += 1
-            callback_data["up"]["total"] += 1
-            callback_data["up"]["total_offset"] += cost
-        elif cmd_type in ["d"]:
-            callback_data["down"]["uncounted"] += 1
-            callback_data["down"]["total"] += 1
-            callback_data["down"]["total_offset"] += cost
-        elif cmd_type in ["m"]:
-            callback_data["move"]["uncounted"] += 1
-            callback_data["move"]["total"] += 1
-            callback_data["move"]["total_offset"] += cost
+        elif cmd_type in ["u", "d", "m"]:
+            type_ = {
+                "u": "up",
+                "d": "down",
+                "m": "move",
+            }[cmd_type]
+            callback_data[type_]["uncommited"] += 1
+            callback_data[type_]["total"] += 1
+            callback_data[type_]["total_offset"] += cost
         elif cmd_type in ["c"]:
-            total_uncounted = 0
+            total_uncommited = 0
             for type_ in ["up", "down", "move"]:
-                total_uncounted += callback_data[type_]["uncounted"]
+                total_uncommited += callback_data[type_]["uncommited"]
 
-            if total_uncounted != 0:
+            if total_uncommited != 0:
                 for type_ in ["up", "down", "move"]:
                     callback_data[type_]["total_offset"] += cost * (
-                        callback_data[type_]["uncounted"] / total_uncounted
+                        callback_data[type_]["uncommited"] / total_uncommited
                     )
-                    callback_data[type_]["uncounted"] = 0
+                    callback_data[type_]["uncommited"] = 0
         callback_data_lock.release()
 
 
