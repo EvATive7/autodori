@@ -28,7 +28,13 @@ from maa.define import RectType
 from maa.resource import Resource
 from maa.tasker import Tasker
 from maa.toolkit import AdbDevice, Toolkit
-from minitouchpy.connection import MNTConnection, MNTServer
+from minitouchpy import (
+    MNT,
+    MNTEvATive7LogEventData,
+    MNTEvent,
+    MNTEventData,
+    MNTServerCommunicateType,
+)
 
 import mumuextras
 from api import BestdoriAPI
@@ -37,19 +43,18 @@ from util import *
 
 LIVEBOOST_COST = 1
 DIFFICULTY = "hard"
-DEFAULT_MOVE_OFFSET = 0.15
-DEFAULT_DOWN_OFFSET = 0.15
+OFFSET = {"up": 0, "down": 0, "move": 0, "wait": 0.0, "interval": 0.0}
 PHOTOGATE_LATENCY = 30
-DEFAULT_MOVE_SLICE_SIZE = 30
+DEFAULT_MOVE_SLICE_SIZE = 10
 MAX_FAILED_TIMES = 10
+CMD_SLICE_SIZE = 50
 
 maaresource = Resource()
 maatasker = Tasker()
 maacontroller: AdbController = None
 device: AdbDevice = None
 player: mumuextras.MuMuPlayer = None
-mnt_server: MNTServer = None
-mnt_connection: MNTConnection = None
+mnt: MNT = None
 all_songs: dict = BestdoriAPI.get_song_list()
 all_song_name_indexes: dict[str, str] = {
     list(filter(lambda title: title is not None, sinfo["musicTitle"]))[0]: sid
@@ -59,6 +64,12 @@ current_song_name: str = None
 current_song_id: str = None
 current_chart: Chart = None
 play_failed_times: int = 0
+callback_data: dict = {
+    "wait": {"total": 0, "total_offset": 0.0},
+    "move": {"uncounted": 0, "total": 0, "total_offset": 0.0},
+    "up": {"uncounted": 0, "total": 0, "total_offset": 0.0},
+    "down": {"uncounted": 0, "total": 0, "total_offset": 0.0},
+}
 
 
 def check_song_available(name, id_, difficulty):
@@ -234,10 +245,7 @@ class SavePlayResult(CustomAction):
                 playresult = {}
             PlayRecord.create(
                 play_time=int(time.time()),
-                play_offset={
-                    "move": DEFAULT_MOVE_OFFSET,
-                    "down": DEFAULT_DOWN_OFFSET,
-                },
+                play_offset=OFFSET,
                 result=playresult,
                 succeed=succeed,
                 chart_id=current_song_id,
@@ -280,16 +288,43 @@ def save_song(name):
     current_song_id = all_song_name_indexes[current_song_name]
     current_chart = Chart((current_song_id, DIFFICULTY), current_song_name)
     current_chart.notes_to_actions(player.resolution, DEFAULT_MOVE_SLICE_SIZE)
-    current_chart.actions_to_MNTcmd(
-        player.resolution, DEFAULT_DOWN_OFFSET, DEFAULT_MOVE_OFFSET
-    )
+
+    current_chart.actions_to_MNTcmd(player.resolution, OFFSET, CMD_SLICE_SIZE)
 
 
 def play_song():
     logging.info("Start play")
 
+    def _get_wait_time():
+        wait_for = 0.0
+        index = current_chart.actions_to_cmd_index
+        for action in current_chart.actions[index - CMD_SLICE_SIZE : index]:
+            if action["type"] == "wait":
+                wait_for += action["length"]
+        return wait_for
+
+    def _adjust_offset():
+        global callback_data
+        for type_ in ["up", "down", "move", "wait"]:
+            type_data = callback_data[type_]
+            total = type_data["total"]
+            if total != 0:
+                OFFSET[type_] = type_data["total_offset"] / total
+        logging.debug("Adjust offset: {}".format(OFFSET))
+
     wait_first_note()
-    current_chart.command_builder.publish(mnt_connection, block=True)
+
+    while True:
+        current_chart.command_builder.publish(mnt, block=False)
+        time.sleep((_get_wait_time() - 3) / 1000)
+
+        index = current_chart.actions_to_cmd_index
+        if current_chart.actions[index : index + CMD_SLICE_SIZE]:
+            _adjust_offset()
+            current_chart.actions_to_MNTcmd(player.resolution, OFFSET, CMD_SLICE_SIZE)
+        else:
+            break
+    time.sleep(2)
 
 
 def wait_first_note():
@@ -363,24 +398,76 @@ def init_maa():
     logging.info("MAA inited.")
 
 
+def mnt_callback(event: MNTEvent, data: MNTEventData):
+    global callback_data
+    if event == MNTEvent.EVATIVE7_LOG:
+        data: MNTEvATive7LogEventData = data
+
+        cmd = data.cmd
+        cost = data.cost
+
+        cmd_type = cmd.split(" ")[0]
+
+        if cmd_type in ["w"]:
+            callback_data["wait"]["total"] += 1
+            callback_data["wait"]["total_offset"] += cost - int(cmd.split(" ")[-1])
+        elif cmd_type in ["u"]:
+            callback_data["up"]["uncounted"] += 1
+            callback_data["up"]["total"] += 1
+            callback_data["up"]["total_offset"] += cost
+        elif cmd_type in ["d"]:
+            callback_data["down"]["uncounted"] += 1
+            callback_data["down"]["total"] += 1
+            callback_data["down"]["total_offset"] += cost
+        elif cmd_type in ["m"]:
+            callback_data["move"]["uncounted"] += 1
+            callback_data["move"]["total"] += 1
+            callback_data["move"]["total_offset"] += cost
+        elif cmd_type in ["c"]:
+            total_uncounted = 0
+            for type_ in ["up", "down", "move"]:
+                total_uncounted += callback_data[type_]["uncounted"]
+
+            if total_uncounted != 0:
+                for type_ in ["up", "down", "move"]:
+                    callback_data[type_]["total_offset"] += cost * (
+                        callback_data[type_]["uncounted"] / total_uncounted
+                    )
+                    callback_data[type_]["uncounted"] = 0
+
+
 def init_mumu_and_mnt():
-    global player, mnt_connection, mnt_server
+    global player, mnt
 
     extra_config = device.config["extras"]["mumu"]
     path = extra_config["path"]
     index = extra_config["index"]
 
     player = mumuextras.MuMuPlayer(Path(path), index)
-    mnt_server = MNTServer(device.address)
-    mnt_connection = MNTConnection(mnt_server)
+    mnt = MNT(
+        device.address,
+        type_="EvATive7",
+        communicate_type=MNTServerCommunicateType.STDIO,
+        mnt_asset_path=Path("./assets/minitouch_EvATive7"),
+        callback=mnt_callback,
+    )
 
     logging.info("Mumu and MNT inited.")
 
 
-def main():
+def configure_log():
     logging.basicConfig(
-        level=logging.DEBUG, format="%(asctime)s[%(levelname)s][%(name)s] %(message)s"
+        level=logging.DEBUG,
+        format="%(asctime)s[%(levelname)s][%(name)s] %(message)s",
+        handlers=[
+            logging.StreamHandler(),
+            logging.FileHandler("debug/python.log", mode="w", encoding="utf-8"),
+        ],
     )
+
+
+def main():
+    configure_log()
 
     parser = argparse.ArgumentParser(
         description="AutoDori script with different modes."
@@ -404,8 +491,7 @@ def main():
 
     maatasker.post_task(entry, {}).wait().get()
 
-    mnt_connection.disconnect()
-    mnt_server.stop()
+    mnt.stop()
     logging.debug("Ready to exit")
     sys.exit()
 
