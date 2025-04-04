@@ -4,6 +4,7 @@ import logging
 import random
 import string
 import sys
+import threading
 import time
 from pathlib import Path
 from typing import Optional, Union
@@ -64,12 +65,21 @@ current_song_name: str = None
 current_song_id: str = None
 current_chart: Chart = None
 play_failed_times: int = 0
-callback_data: dict = {
-    "wait": {"total": 0, "total_offset": 0.0},
-    "move": {"uncounted": 0, "total": 0, "total_offset": 0.0},
-    "up": {"uncounted": 0, "total": 0, "total_offset": 0.0},
-    "down": {"uncounted": 0, "total": 0, "total_offset": 0.0},
-}
+callback_data: dict = {}
+callback_data_lock = threading.Lock()
+
+
+def reset_callback_data():
+    global callback_data
+    callback_data = {
+        "wait": {"total": 0, "total_offset": 0.0},
+        "move": {"uncounted": 0, "total": 0, "total_offset": 0.0},
+        "up": {"uncounted": 0, "total": 0, "total_offset": 0.0},
+        "down": {"uncounted": 0, "total": 0, "total_offset": 0.0},
+    }
+
+
+reset_callback_data()
 
 
 def check_song_available(name, id_, difficulty):
@@ -304,12 +314,15 @@ def play_song():
         return wait_for
 
     def _adjust_offset():
+        callback_data_lock.acquire()
         global callback_data
         for type_ in ["up", "down", "move", "wait"]:
             type_data = callback_data[type_]
             total = type_data["total"]
             if total != 0:
                 OFFSET[type_] = type_data["total_offset"] / total
+        # reset_callback_data()
+        callback_data_lock.release()
         logging.debug("Adjust offset: {}".format(OFFSET))
 
     wait_first_note()
@@ -408,6 +421,7 @@ def mnt_callback(event: MNTEvent, data: MNTEventData):
 
         cmd_type = cmd.split(" ")[0]
 
+        callback_data_lock.acquire()
         if cmd_type in ["w"]:
             callback_data["wait"]["total"] += 1
             callback_data["wait"]["total_offset"] += cost - int(cmd.split(" ")[-1])
@@ -434,6 +448,7 @@ def mnt_callback(event: MNTEvent, data: MNTEventData):
                         callback_data[type_]["uncounted"] / total_uncounted
                     )
                     callback_data[type_]["uncounted"] = 0
+        callback_data_lock.release()
 
 
 def init_mumu_and_mnt():
