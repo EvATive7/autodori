@@ -423,9 +423,9 @@ class Chart:
                 wait_for = action["length"]
 
                 if self._actions_to_cmd_offset != 0:
-                    min_ = min(wait_for, self._actions_to_cmd_offset)
-                    wait_for -= min_
-                    self._actions_to_cmd_offset -= min_
+                    adjust = min(wait_for, self._actions_to_cmd_offset, 10)
+                    wait_for -= adjust
+                    self._actions_to_cmd_offset -= adjust
 
                 # TODO: clearer
                 if self._actions_to_cmd_rounded_loss > 0:
