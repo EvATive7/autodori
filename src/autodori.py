@@ -1,4 +1,5 @@
 import argparse
+import datetime
 import json
 import logging
 import random
@@ -476,7 +477,13 @@ def configure_log():
         format="%(asctime)s[%(levelname)s][%(name)s] %(message)s",
         handlers=[
             logging.StreamHandler(),
-            logging.FileHandler("debug/python.log", mode="w", encoding="utf-8"),
+            logging.FileHandler(
+                "debug/python-{}.log".format(
+                    datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+                ),
+                mode="w",
+                encoding="utf-8",
+            ),
         ],
     )
 
