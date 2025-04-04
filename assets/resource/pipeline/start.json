@@ -69,7 +69,8 @@
             576,
             164,
             129
-        ]
+        ],
+        "post_delay": 500
     },
     "start_task_stop": {
         "recognition": "TemplateMatch",
