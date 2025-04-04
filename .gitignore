@@ -2,6 +2,8 @@ resource/minitouch/
 cache/
 data/
 config/
+minitouch_EvATive7/
+!minitouch_EvATive7/.gitkeep
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
