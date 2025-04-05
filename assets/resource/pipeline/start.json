@@ -58,9 +58,15 @@
             "tap_to_next",
             "close_button",
             "reader_skip",
-            "safe_random_click"
+            "safe_random_click",
+            "download"
         ],
         "timeout": 120000
+    },
+    "download": {
+        "recognition": "TemplateMatch",
+        "template": "common\\button\\download.png",
+        "action": "Click"
     },
     "safe_random_click": {
         "action": "Click",
