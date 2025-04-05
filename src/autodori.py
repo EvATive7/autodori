@@ -530,7 +530,7 @@ def _get_set_difficulty_pipeline():
     roi = {
         "easy": [659, 495, 107, 97],
         "normal": [768, 494, 107, 97],
-        "hard": [996, 494, 107, 97],
+        "hard": [886, 494, 105, 97],
         "expert": [996, 493, 107, 97],
     }[difficulty]
 
