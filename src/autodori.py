@@ -43,7 +43,7 @@ from api import BestdoriAPI
 from chart import Chart, PlayRecord
 from util import *
 
-LIVEBOOST_COST = 1
+MIN_LIVEBOOST = 1
 DIFFICULTY = "hard"
 OFFSET = {"up": 0, "down": 0, "move": 0, "wait": 0.0, "interval": 0.0}
 PHOTOGATE_LATENCY = 30
@@ -179,7 +179,7 @@ class LiveBoostEnoughRecognition(CustomRecognition):
 
         logging.debug("Live boost: {}".format(live_boost))
 
-        if live_boost < LIVEBOOST_COST:
+        if live_boost < MIN_LIVEBOOST:
             return CustomRecognition.AnalyzeResult(None, "")
         else:
             return CustomRecognition.AnalyzeResult(roi, str(live_boost))
@@ -569,6 +569,12 @@ def main():
         help="Specify the difficulty for main mode",
         default="hard",
     )
+    parser.add_argument(
+        "--liveboost",
+        type=int,
+        default=1,
+        help="Specify the min liveboost for main mode",
+    )
     args = parser.parse_args()
 
     if args.mode == "main":
@@ -576,8 +582,9 @@ def main():
     else:
         sys.exit(1)
 
-    global DIFFICULTY
+    global DIFFICULTY, MIN_LIVEBOOST
     DIFFICULTY = args.difficulty
+    MIN_LIVEBOOST = args.liveboost
     init_maa()
     init_mumu_and_mnt()
 
