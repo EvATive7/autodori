@@ -6,6 +6,10 @@
         "next": [
             "freelive",
             "live_home_button"
+        ],
+        "interrupt": [
+            "next_button",
+            "close_button"
         ]
     },
     "freelive": {

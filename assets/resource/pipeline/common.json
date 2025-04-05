@@ -23,8 +23,8 @@
         "action": "Click"
     },
     "next_button": {
-        "recognition": "TemplateMatch",
-        "template": "common\\button\\next\\pink.png",
+        "recognition": "OCR",
+        "expected": "下一步",
         "action": "Click",
         "timeout": 6000
     },
