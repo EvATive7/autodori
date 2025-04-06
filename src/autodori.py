@@ -340,6 +340,7 @@ def save_song(name):
     current_chart.actions_to_MNTcmd(
         (mnt.max_x, mnt.max_y), current_orientation, OFFSET, CMD_SLICE_SIZE
     )
+    logging.debug("Save song: {}".format(name))
 
 
 def play_song():
