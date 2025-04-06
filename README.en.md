@@ -37,6 +37,7 @@ A BanG Dream! helper
 > 1. In the game "Performance Settings", adjust the flow rate to 8.0
 > 1. In the game's "Performance Effect·Volume Setting", turn off "3D Cut-in Mode" and change "Action Mode" to "Lightweight Mode"
 > 1. For a better experience, you can enable "FAST/SLOW Representation" and "Perfect Status Display" in the game "Performance Effect·Volume Setting"
+> 1. Connect to the simulator using adb
 
 1. Download the latest version from [Releases](https://github.com/EvATive7/autodori/releases)  
 2. Extract the folder and run `autodori.exe`
@@ -55,4 +56,3 @@ A BanG Dream! helper
 
 1. It is recommended to use the latest version of Mumu emulator. It was tested less frequently on the LDPlayer and appeared to have performance issues.
 1. The script is not yet complete and errors may occur. Welcome to post Issue and PR.
-1. Before using, please use adb to connect to the simulator.
