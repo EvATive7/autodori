@@ -35,6 +35,7 @@ A BanG Dream! helper
 >
 > 1. Ensure adequate equipment and simulator performance
 > 1. Set the simulator resolution to a value of 16:9, recommended (1600,900) or (1280,720)
+> 1. The song selection list is "normal". It is recommended to clear the restore filter
 > 1. In the game "Performance Settings", adjust the flow rate to 8.0
 > 1. In the game's "Performance Effect·Volume Setting", turn off "3D Cut-in Mode" and change "Action Mode" to "Lightweight Mode"
 > 1. For a better experience, you can enable "FAST/SLOW Representation" and "Perfect Status Display" in the game "Performance Effect·Volume Setting"
