@@ -7,6 +7,9 @@ import site
 import sys
 import zipfile
 import argparse
+import requests
+from io import BytesIO
+from zipfile import ZipFile
 
 import PyInstaller.__main__
 
@@ -62,6 +65,44 @@ if maa_bin_path2 is None:
 
 # 构建 --add-data 参数
 add_data_param2 = f"{maa_bin_path2}{os.pathsep}MaaAgentBinary"
+
+
+# 下载 minitouch.zip 并解压
+def download_and_extract_minitouch():
+    # GitHub 最新 release 页面
+    url = "https://github.com/EvATive7/minitouch/releases/latest/download/minitouch.zip"
+
+    # 下载文件
+    print("Downloading minitouch.zip...")
+    response = requests.get(url)
+    if response.status_code == 200:
+        with ZipFile(BytesIO(response.content)) as zip_ref:
+            # 解压到临时目录
+            temp_dir = os.path.join(current_dir, "minitouch_temp")
+            if os.path.exists(temp_dir):
+                shutil.rmtree(temp_dir)  # 清理旧的临时文件夹
+            zip_ref.extractall(temp_dir)
+            print("minitouch.zip downloaded and extracted.")
+            return temp_dir
+    else:
+        raise Exception(f"Failed to download minitouch.zip: {response.status_code}")
+
+
+# 将 minitouch 文件夹移动到 dist/assets/minitouch_EvATive7 目录
+def move_minitouch_to_assets(temp_dir):
+    minitouch_src_dir = os.path.join(temp_dir, "minitouch")
+    minitouch_dest_dir = os.path.join(
+        current_dir, "dist", "assets", "minitouch_EvATive7"
+    )
+
+    if os.path.exists(minitouch_dest_dir):
+        shutil.rmtree(minitouch_dest_dir)  # 如果目标目录已存在，先删除
+
+    shutil.copytree(minitouch_src_dir, minitouch_dest_dir)
+
+    if os.path.exists(temp_dir):
+        shutil.rmtree(temp_dir)
+    print(f"minitouch files have been copied to {minitouch_dest_dir}")
 
 
 # 复制 assets 文件夹到 dist 目录
@@ -126,6 +167,8 @@ shutil.copytree(
     ),
     dirs_exist_ok=True,
 )
+temp_dir = download_and_extract_minitouch()
+move_minitouch_to_assets(temp_dir)
 
 # # 复制 syc.bat 文件
 # if os.path.exists(syc_bat_source_path):

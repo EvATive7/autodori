@@ -17,6 +17,7 @@ data_path.mkdir(exist_ok=True)
 cache_path = Path("cache")
 cache_path.mkdir(exist_ok=True)
 config_path = Path("data/config.yml")
+Path("debug").mkdir(exist_ok=True)
 if not config_path.exists():
     config_path.touch()
     config_path.write_text("{}", encoding="utf-8")
