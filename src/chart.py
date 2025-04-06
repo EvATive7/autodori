@@ -360,7 +360,7 @@ class Chart:
         ]
         self.actions = actions_with_wait
 
-    def actions_to_MNTcmd(self, resolution, offset_info, size=50):
+    def actions_to_MNTcmd(self, resolution, orientation, offset_info, size=50):
         self.command_builder = CommandBuilder()
         builder = self.command_builder
         actions = self.actions[
@@ -399,9 +399,9 @@ class Chart:
                     builder.down(
                         finger,
                         *util.androidxy_to_MNTxy(
-                            round_tuple(action["pos"]), resolution
+                            round_tuple(action["pos"]), resolution, orientation
                         ),
-                        0,
+                        1,
                     ),
                     action_index,
                 )
@@ -411,8 +411,10 @@ class Chart:
                 append(
                     builder.move(
                         finger,
-                        *util.androidxy_to_MNTxy(round_tuple(action["to"]), resolution),
-                        0,
+                        *util.androidxy_to_MNTxy(
+                            round_tuple(action["to"]), resolution, orientation
+                        ),
+                        1,
                     ),
                     action_index,
                 )

@@ -47,38 +47,35 @@ def display_cmds(commands):
 
 
 def get_color_eval_in_range(image_array, start_row, end_row):
-    """
-    计算图像指定行范围内颜色的平均值和标准差。
+    avg_color = np.zeros(3)
+    std_color = np.zeros(3)
 
-    该函数通过遍历指定行范围（从start_row到end_row，包含边界行），调用util.evaluate_row_color函数
-    计算每一行的颜色平均值和标准差，然后汇总计算整个范围内颜色的平均值和标准差。
-
-    参数:
-    image_array: 图像数组，表示图像像素颜色信息的二维数组。
-    start_row: 起始行号，表示计算颜色评价的行开始索引。
-    end_row: 结束行号，表示计算颜色评价的行结束索引。
-
-    返回值:
-    avg_color: 指定行范围内颜色的平均值。
-    std_color: 指定行范围内颜色的标准差。
-    """
-    # 初始化颜色平均值和标准差数组，用于累加每行的结果
-    avg_color = np.zeros(4)
-    std_color = np.zeros(4)
-
-    # 遍历指定行范围
     for row_index in range(start_row, end_row + 1):
-        # 调用工具函数计算当前行的颜色平均值和标准差
         avg_color_row, std_color_row = evaluate_row_color(image_array, row_index)
-        # 累加每行的颜色平均值和标准差
         avg_color += np.array(avg_color_row)
         std_color += np.array(std_color_row)
 
-    # 计算指定行范围内颜色的平均值和标准差
     avg_color /= end_row - start_row + 1
     std_color /= end_row - start_row + 1
 
-    # 返回计算结果
+    return avg_color, std_color
+
+
+def evaluate_row_color(image_array, row_index):
+    """
+    评估图像中某一行的颜色（仅RGB）。
+    :param image_array: 输入图像，应为 (height, width, 3) 的 numpy 数组
+    :param row_index: 要评估的行索引
+    :return: 返回该行的平均颜色 (R, G, B) 和标准差
+    """
+    row_data = image_array[row_index, :, :]  # 形状为 (width, 3)
+
+    # 分离出 R、G、B 通道
+    r, g, b = row_data[:, 0], row_data[:, 1], row_data[:, 2]
+
+    avg_color = (np.mean(r), np.mean(g), np.mean(b))
+    std_color = (np.std(r), np.std(g), np.std(b))
+
     return avg_color, std_color
 
 
@@ -87,60 +84,25 @@ def resolution_to_xformat(resolution: tuple[int, int]):
     return f"{resolution_x}x{resolution_y}"
 
 
-def androidxy_to_MNTxy(android, resolution):
+def androidxy_to_MNTxy(android, mnt_resolution: tuple[int, int], orientation: int):
     android_x, android_y = android
-    resolution_x, resolution_y = resolution
-    return (int(resolution_y - android_y), int(android_x))
+    resolution_x, resolution_y = mnt_resolution
 
+    list_ = [-1] * 4
+    list_[orientation] = android_x
+    list_[orientation + 1] = android_y
+    for i in range(len(list_)):
+        if list_[i] == -1:
+            if i == 0:
+                list_[0] = resolution_x - list_[2]
+            elif i == 1:
+                list_[1] = resolution_y - list_[3]
+            elif i == 2:
+                list_[2] = resolution_x - list_[0]
+            elif i == 3:
+                list_[3] = resolution_y - list_[1]
 
-def MNTxy_to_androidxy(mnt, resolution):
-    mnt_x, mnt_y = mnt
-    resolution_x, resolution_y = resolution
-    return (int(mnt_y), int(resolution_y - mnt_x))
-
-
-def evaluate_row_color(image_array, row_index):
-    """
-    评估图像中某一行的颜色。
-    :param image_array: 输入的图像数据，应该是形状为 (height, width, 4) 的 numpy 数组
-    :param row_index: 需要评估的行索引
-    :return: 返回该行的平均颜色 (R, G, B, A) 和标准差
-    """
-    # 获取指定行的数据，形状为 (width, 4)，即该行的所有像素
-    row_data = image_array[row_index, :, :]
-
-    # 分离出不同的颜色通道
-    r = row_data[:, 0]  # 红色通道
-    g = row_data[:, 1]  # 绿色通道
-    b = row_data[:, 2]  # 蓝色通道
-    a = row_data[:, 3]  # alpha透明度通道
-
-    # 计算每个通道的平均值和标准差
-    avg_r = np.mean(r)
-    avg_g = np.mean(g)
-    avg_b = np.mean(b)
-    avg_a = np.mean(a)
-
-    std_r = np.std(r)
-    std_g = np.std(g)
-    std_b = np.std(b)
-    std_a = np.std(a)
-
-    avg_color = (avg_r, avg_g, avg_b, avg_a)
-    std_color = (std_r, std_g, std_b, std_a)
-
-    return avg_color, std_color
-
-
-def vflip(pixel_data: np.ndarray, width, height):
-    pixel_data = pixel_data.reshape((height, width, 4))
-    pixel_data = pixel_data[::-1]
-    return pixel_data
-
-
-def to_image(pixels: np.ndarray, resolution: tuple[int, int]):
-    image = Image.frombuffer("RGBA", resolution, bytes(pixels))
-    return image
+    return (int(list_[0]), int(list_[1]))
 
 
 def generate_function_call_str(function, args, kwargs):

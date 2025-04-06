@@ -3,7 +3,9 @@ import datetime
 import json
 import logging
 import random
+import re
 import string
+import subprocess
 import sys
 import threading
 import time
@@ -38,7 +40,7 @@ from minitouchpy import (
     MNTServerCommunicateType,
 )
 
-import mumuextras
+import player
 from api import BestdoriAPI
 from chart import Chart, PlayRecord
 from util import *
@@ -55,7 +57,8 @@ maaresource = Resource()
 maatasker = Tasker()
 maacontroller: AdbController = None
 device: AdbDevice = None
-player: mumuextras.MuMuPlayer = None
+current_player: player.Player = None
+current_orientation: int = 0
 mnt: MNT = None
 all_songs: dict = BestdoriAPI.get_song_list()
 all_song_name_indexes: dict[str, str] = {
@@ -297,14 +300,46 @@ def fuzzy_match_song(name):
     return fzwzprocess.extractOne(name, list(all_song_name_indexes.keys()))
 
 
+def _get_orientation():
+    """
+    0, 1, 2, 3
+    0: 0°
+    1: 90°
+    2: 180°
+    3: 270°
+    """
+    try:
+        command_list = [
+            str(device.adb_path.absolute()),
+            "-s",
+            device.address,
+            "shell",
+            "dumpsys input|grep SurfaceOrientation",
+        ]
+
+        logging.debug(
+            "get SurfaceOrientation command: {}".format(" ".join(command_list))
+        )
+        output = subprocess.check_output(command_list, text=True)
+        match = re.search(r"SurfaceOrientation:\s*(\d+)", output)
+        orientation = int(match.group(1))
+        logging.debug("SurfaceOrientation: {}".format(orientation))
+        return orientation
+    except Exception as e:
+        logging.error(f"Failed to get SurfaceOrientation: {e}")
+        return 0
+
+
 def save_song(name):
-    global current_song_name, current_song_id, current_chart
+    global current_song_name, current_song_id, current_chart, current_orientation
     current_song_name = name
     current_song_id = all_song_name_indexes[current_song_name]
     current_chart = Chart((current_song_id, DIFFICULTY), current_song_name)
-    current_chart.notes_to_actions(player.resolution, DEFAULT_MOVE_SLICE_SIZE)
-
-    current_chart.actions_to_MNTcmd(player.resolution, OFFSET, CMD_SLICE_SIZE)
+    current_chart.notes_to_actions(current_player.resolution, DEFAULT_MOVE_SLICE_SIZE)
+    current_orientation = _get_orientation()
+    current_chart.actions_to_MNTcmd(
+        (mnt.max_x, mnt.max_y), current_orientation, OFFSET, CMD_SLICE_SIZE
+    )
 
 
 def play_song():
@@ -366,7 +401,9 @@ def play_song():
         if current_chart.actions[index : index + CMD_SLICE_SIZE]:
             _adjust_offset()
             # _adjust_actions_to_cmd_offset()
-            current_chart.actions_to_MNTcmd(player.resolution, OFFSET, CMD_SLICE_SIZE)
+            current_chart.actions_to_MNTcmd(
+                (mnt.max_x, mnt.max_y), current_orientation, OFFSET, CMD_SLICE_SIZE
+            )
         else:
             break
     time.sleep(2)
@@ -375,13 +412,12 @@ def play_song():
 def wait_first_note():
     last_color = None
     waited_frames = 0
-    info = get_runtime_info(player.resolution)["wait_first"]
+    info = get_runtime_info(current_player.resolution)["wait_first"]
     from_row, to_row = info["from"], info["to"]
     freezed = False
 
-    display_id = player.ipc_get_display_id("com.bilibili.star.bili")
     while True:
-        screen = player.ipc_capture_display(display_id)
+        screen = current_player.ipc_capture_display()
         cur_color, _ = get_color_eval_in_range(screen, from_row, to_row)
 
         if last_color is not None:
@@ -416,14 +452,26 @@ def init_maa():
         sys.exit(1)
 
     global device, maacontroller
-    _device = [
-        device for device in adb_devices if "mumu" in device.config.get("extras", {})
-    ]
+    _device: list[AdbDevice] = []
+    for device in adb_devices:
+        extra_names = device.config.get("extras", {}).keys()
+        if "mumu" in extra_names or "ld" in extra_names:
+            if (device.name, device.address) not in [
+                (d.name, d.address) for d in _device
+            ]:
+                _device.append(device)
+
     if not _device:
         logging.fatal("No supported devices were found.")
         sys.exit(1)
-    else:
+    elif len(_device) == 1:
         device = _device[0]
+    elif len(_device) > 1:
+        print("Multiple devices were found:")
+        for i, device in enumerate(_device):
+            print(f"{i}: {device.name}({device.address})")
+        selected = input("Select a device: ")
+        device = _device[int(selected)]
     maacontroller = AdbController(
         adb_path=device.adb_path,
         address=device.address,
@@ -489,14 +537,21 @@ def mnt_callback(event: MNTEvent, data: MNTEventData):
         callback_data_lock.release()
 
 
-def init_mumu_and_mnt():
-    global player, mnt
+def init_player_and_mnt():
+    global current_player, mnt
 
-    extra_config = device.config["extras"]["mumu"]
+    extra_config = device.config["extras"]
+    if "mumu" in extra_config.keys():
+        extra_config = extra_config["mumu"]
+        type_ = "mumu"
+    elif "ld" in extra_config.keys():
+        extra_config = extra_config["ld"]
+        type_ = "ld"
+
     path = extra_config["path"]
     index = extra_config["index"]
 
-    player = mumuextras.MuMuPlayer(Path(path), index)
+    current_player = player.Player(type_, Path(path), index)
     mnt = MNT(
         device.address,
         type_="EvATive7",
@@ -586,7 +641,7 @@ def main():
     DIFFICULTY = args.difficulty
     MIN_LIVEBOOST = args.liveboost
     init_maa()
-    init_mumu_and_mnt()
+    init_player_and_mnt()
 
     maatasker.post_task(entry, _get_set_difficulty_pipeline()).wait().get()
 

@@ -2,6 +2,8 @@ requests
 diskcache
 fuzzywuzzy
 minitouch.py
+mumuipc.py
+ld-ipc.py
 maafw
 numpy
 pyyaml
