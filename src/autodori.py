@@ -271,6 +271,7 @@ class SavePlayResult(CustomAction):
                 difficulty=DIFFICULTY,
             )
             if play_failed_times >= MAX_FAILED_TIMES:
+                logging.error("Failed attempts exceed max failed times")
                 context.run_action("close_app")
             return CustomAction.RunResult(True)
         except Exception as e:
@@ -284,7 +285,8 @@ class Play(CustomAction):
         try:
             play_song()
             return CustomAction.RunResult(True)
-        except:
+        except Exception as e:
+            logging.error(f"Failed when play song: {e}")
             return CustomAction.RunResult(False)
 
 
@@ -293,7 +295,6 @@ class SaveSong(CustomAction):
     def run(self, context: Context, argv: CustomAction.RunArg):
         name: CustomRecognitionResult = argv.reco_detail.best_result.detail
         save_song(name)
-        logging.debug("Save song: {}".format(name))
         return CustomAction.RunResult(True)
 
 
@@ -397,7 +398,8 @@ def play_song():
 
     while True:
         current_chart.command_builder.publish(mnt, block=False)
-        time.sleep((_get_wait_time() - 3) / 1000)
+        wait_time = _get_wait_time()
+        time.sleep(max(0, wait_time - 3) / 1000)
 
         index = current_chart.actions_to_cmd_index
         if current_chart.actions[index : index + CMD_SLICE_SIZE]:
