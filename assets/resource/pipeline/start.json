@@ -44,6 +44,18 @@
             256
         ]
     },
+    "start_reader_menu": {
+        "recognition": "TemplateMatch",
+        "template": "common\\reader\\menu.png",
+        "action": "Click",
+        "next": "start_reader_skip"
+    },
+    "start_reader_skip": {
+        "recognition": "TemplateMatch",
+        "template": "common\\reader\\skip.png",
+        "action": "Click",
+        "next": "skip_button"
+    },
     "tap_start": {
         "action": "Click",
         "target": [
@@ -57,7 +69,7 @@
             "next_button",
             "tap_to_next",
             "close_button",
-            "reader_skip",
+            "start_reader_menu",
             "safe_random_click",
             "download"
         ],

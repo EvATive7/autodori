@@ -65,19 +65,6 @@
         "action": "Click",
         "post_delay": 1500
     },
-    "reader_menu": {
-        "recognition": "TemplateMatch",
-        "template": "common\\reader\\menu.png",
-        "action": "Click"
-    },
-    "reader_skip": {
-        "recognition": "TemplateMatch",
-        "template": "common\\reader\\skip.png",
-        "action": "Click",
-        "interrupt": [
-            "reader_menu"
-        ]
-    },
     "backtitle_button": {
         "recognition": "TemplateMatch",
         "template": "common\\button\\backtitle\\white.png",
