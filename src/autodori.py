@@ -286,7 +286,7 @@ class Play(CustomAction):
             play_song()
             return CustomAction.RunResult(True)
         except Exception as e:
-            logging.error(f"Failed when play song: {e}")
+            logging.error(f"Failed when play song: {e}", stack_info=True)
             return CustomAction.RunResult(False)
 
 
@@ -596,14 +596,9 @@ def _get_set_difficulty_pipeline():
     return {
         "set_difficulty": {
             "action": "Click",
-            "recognition": "TemplateMatch",
             "next": "comfirm_song",
             "interrupt": ["confirm_button"],
-            "roi": roi,
-            "template": [
-                "live\\difficulty\\{}_active.png".format(difficulty),
-                "live\\difficulty\\{}_deactive.png".format(difficulty),
-            ],
+            "target": roi,
         }
     }
 

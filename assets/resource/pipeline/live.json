@@ -66,24 +66,7 @@
         "custom_action": "SaveSong",
         "next": "set_difficulty"
     },
-    "set_difficulty": {
-        "action": "Click",
-        "roi": [
-            886,
-            494,
-            105,
-            97
-        ],
-        "recognition": "TemplateMatch",
-        "template": [
-            "live\\difficulty\\hard_active.png",
-            "live\\difficulty\\hard_deactive.png"
-        ],
-        "next": "comfirm_song",
-        "interrupt": [
-            "confirm_button"
-        ]
-    },
+    "set_difficulty": {},
     "comfirm_song": {
         "recognition": "OCR",
         "expected": "选择乐队",
