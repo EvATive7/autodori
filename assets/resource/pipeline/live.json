@@ -106,6 +106,8 @@
     "ensure_liveboost": {
         "recognition": "Custom",
         "custom_recognition": "LiveBoostEnoughRecognition",
+        "action": "Custom",
+        "custom_action": "HandleLiveBoost",
         "next": "ensure_live_mode",
         "interrupt": "exit_rehearsal_mode"
     },

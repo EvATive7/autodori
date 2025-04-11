@@ -182,11 +182,18 @@ class LiveBoostEnoughRecognition(CustomRecognition):
             live_boost = -1
 
         logging.debug("Live boost: {}".format(live_boost))
+        return CustomRecognition.AnalyzeResult(roi, str(live_boost))
 
-        if live_boost < MIN_LIVEBOOST:
-            return CustomRecognition.AnalyzeResult(None, "")
-        else:
-            return CustomRecognition.AnalyzeResult(roi, str(live_boost))
+
+@maaresource.custom_action("HandleLiveBoost")
+class HandleLiveBoost(CustomAction):
+    def run(self, context: Context, argv: CustomAction.RunArg):
+        liveboost = int(argv.reco_detail.best_result.detail)
+        if liveboost < MIN_LIVEBOOST:
+            logging.debug("Live boost not enough, ready to exit")
+            context.run_action("close_app")
+            context.run_action("stop")
+        return CustomAction.RunResult(True)
 
 
 @maaresource.custom_recognition("PlayResultRecognition")
@@ -273,6 +280,7 @@ class SavePlayResult(CustomAction):
             if play_failed_times >= MAX_FAILED_TIMES:
                 logging.error("Failed attempts exceed max failed times")
                 context.run_action("close_app")
+                context.run_action("stop")
             return CustomAction.RunResult(True)
         except Exception as e:
             logging.error(f"Failed to save play result: {e}")
@@ -627,7 +635,7 @@ def main():
         "--liveboost",
         type=int,
         default=1,
-        help="Specify the min liveboost for main mode",
+        help="Specify the min liveboost for main mode. If current liveboost is lower than this value, the script will exit.",
     )
     args = parser.parse_args()
 
