@@ -35,7 +35,7 @@ A BanG Dream! helper
 >
 > 1. Ensure adequate equipment and simulator performance
 > 1. Set the simulator resolution to a value of 16:9, recommended (1600,900) or (1280,720)
-> 1. The song selection list is "normal". It is recommended to clear the restore filter
+> 1. The song selection list is "normal". It is recommended to clear the filter
 > 1. In the game "Performance Settings", adjust the flow rate to 8.0
 > 1. In the game's "Performance Effect·Volume Setting", turn off "3D Cut-in Mode" and change "Action Mode" to "Lightweight Mode"
 > 1. For a better experience, you can enable "FAST/SLOW Representation" and "Perfect Status Display" in the game "Performance Effect·Volume Setting"
@@ -48,13 +48,18 @@ A BanG Dream! helper
 > [!TIP]  
 > If you're comfortable with coding, or need to tweak settings / optimize for score pushing / testing or development purposes, run from source:  
 >
-> 1. `git clone` this repository  
+> 1. `git clone --recursive https://github.com/EvATive7/autodori`  
 > 2. `cd autodori`  
 > 3. `python -m venv .venv`  
 > 4. `.venv\Scripts\activate`  
-> 5. Install dependencies: `pip install -r requirements.txt`
+> 5. `pip install -r requirements.txt`
+> 6. Download [minitouch (EvATive7 ver.)](https://github.com/EvATive7/minitouch), and put it into assets/minitouch_EvATive7 folder
 
 ## Note
 
 1. It is recommended to use the latest version of Mumu emulator. It was tested less frequently on the LDPlayer and appeared to have performance issues.
 1. The script is not yet complete and errors may occur. Welcome to post Issue and PR.
+
+## license
+
+This project is open source under the GPLv3 license. Please comply with the [Project License](LICENSE) to modify, copy, and distribute this project.  
