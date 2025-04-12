@@ -429,26 +429,31 @@ def wait_first_note():
     freezed = False
 
     while True:
-        screen = current_player.ipc_capture_display()
-        cur_color, _ = get_color_eval_in_range(screen, from_row, to_row)
+        try:
+            screen = current_player.ipc_capture_display()
+            cur_color, _ = get_color_eval_in_range(screen, from_row, to_row)
 
-        if last_color is not None:
-            change_score = np.sum(cur_color[0:3] - last_color[0:3])
-            logging.debug(f"Picture changed: {change_score}")
-            if change_score > 3:
-                if freezed:
-                    logging.debug(f"The first note falls between {from_row}-{to_row}")
-                    time.sleep(PHOTOGATE_LATENCY / 1000)
-                    break
-            else:
-                if not freezed:
-                    waited_frames += 1
+            if last_color is not None:
+                change_score = np.sum(cur_color[0:3] - last_color[0:3])
+                logging.debug(f"Picture changed: {change_score}")
+                if change_score > 3:
+                    if freezed:
+                        logging.debug(
+                            f"The first note falls between {from_row}-{to_row}"
+                        )
+                        time.sleep(PHOTOGATE_LATENCY / 1000)
+                        break
+                else:
+                    if not freezed:
+                        waited_frames += 1
 
-            if not freezed and waited_frames >= 200:
-                freezed = True
-                logging.debug("Picture freezed, waiting for the first note...")
+                if not freezed and waited_frames >= 200:
+                    freezed = True
+                    logging.debug("Picture freezed, waiting for the first note...")
 
-        last_color = cur_color
+            last_color = cur_color
+        except Exception as e:
+            logging.error(f"Failed to get screen: {e}")
 
 
 def init_maa():
