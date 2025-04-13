@@ -66,7 +66,7 @@ A BanG Dream! helper
 This project is open source under the GPLv3 license. Please comply with the [Project License](LICENSE) to modify, copy, and distribute this project.  
 In addition to python packages, this project also references, modifies, or distributes the following open source code, components, or binaries directly:
 
-- [minitouch ver.EvATive7](https://github.com/openstf/minitouch) (Apache License 2.0)
+- [minitouch ver.EvATive7](https://github.com/EvATive7/minitouch) (Apache License 2.0)
 - [MaaFramework](https://github.com/MaaXYZ/MaaFramework) (LGPLv3)
 - [MaaYYS/build.py](https://github.com/MaaYYS/build.py) (MIT)
 

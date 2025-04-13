@@ -67,7 +67,7 @@
 本项目在GPLv3许可下开放源代码，修改、复制、分发本项目请遵守[项目许可证](LICENSE)。  
 除了python包外，本项目还直接引用、修改或分发了以下开源代码、组件或二进制：
 
-- [minitouch ver.EvATive7](https://github.com/openstf/minitouch)（Apache License 2.0）
+- [minitouch ver.EvATive7](https://github.com/EvATive7/minitouch)（Apache License 2.0）
 - [MaaFramework](https://github.com/MaaXYZ/MaaFramework)（LGPLv3）
 - [MaaYYS/build.py](https://github.com/TanyaShue/MaaYYs)（MIT）
 
