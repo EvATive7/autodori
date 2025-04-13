@@ -62,6 +62,16 @@
 1. 脚本尚不完善，可能发生错误。欢迎带日志Issue和PR。
 1. 你可以修改data/config.yml来更改配置：[配置文件示例](./docs/config_eg/config.yml)
 
-## 许可证
+## 许可证和版权
 
 本项目在GPLv3许可下开放源代码，修改、复制、分发本项目请遵守[项目许可证](LICENSE)。  
+除了python包外，本项目还直接引用、修改或分发了以下开源代码、组件或二进制：
+
+- [minitouch ver.EvATive7](https://github.com/openstf/minitouch)（Apache License 2.0）
+- [MaaFramework](https://github.com/MaaXYZ/MaaFramework)（LGPLv3）
+- [MaaYYS/build.py](https://github.com/TanyaShue/MaaYYs)（MIT）
+
+本项目分发了以下闭源动态链接库，这些动态链接库并非本项目的开源部分，也不受本项目许可证的约束：
+
+- msvcp140.dll
+- vcruntime140.dll

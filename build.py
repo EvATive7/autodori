@@ -1,6 +1,3 @@
-# EvATive7 forked from github.com/TanyaShue/MaaYYs
-# Copyright: TanyaShue
-
 import os
 import shutil
 import site

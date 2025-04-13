@@ -61,6 +61,16 @@ A BanG Dream! helper
 1. The script is not yet complete and errors may occur. Welcome to post Issue and PR.
 1. You can modify data/config.yml to change the configuration: [config example](./docs/config_eg/config.yml)
 
-## license
+## license and copyright
 
 This project is open source under the GPLv3 license. Please comply with the [Project License](LICENSE) to modify, copy, and distribute this project.  
+In addition to python packages, this project also references, modifies, or distributes the following open source code, components, or binaries directly:
+
+- [minitouch ver.EvATive7](https://github.com/openstf/minitouch) (Apache License 2.0)
+- [MaaFramework](https://github.com/MaaXYZ/MaaFramework) (LGPLv3)
+- [MaaYYS/build.py](https://github.com/MaaYYS/build.py) (MIT)
+
+This project distributes the following closed-source dynamic link libraries, which are not open source parts of the project and are not subject to the project license:
+
+- msvcp140.dll
+- vcruntime140.dll
