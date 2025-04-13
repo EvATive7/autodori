@@ -59,6 +59,7 @@ A BanG Dream! helper
 
 1. It is recommended to use the latest version of Mumu emulator. It was tested less frequently on the LDPlayer and appeared to have performance issues.
 1. The script is not yet complete and errors may occur. Welcome to post Issue and PR.
+1. You can modify data/config.yml to change the configuration: [config example](./docs/config_eg/config.yml)
 
 ## license
 

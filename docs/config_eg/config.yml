@@ -1,0 +1,20 @@
+device:
+  # A piece of python expression that can be executed.
+  # Available values are:
+  # devices: list[AdbDevice]
+  # Expected return: list[AdbDevice]
+
+  # The following is the definition of AdbDevice:
+  # (See: https://github.com/MaaXYZ/MaaFramework/blob/main/source/binding/Python/maa/toolkit.py)
+  #
+  # @dataclass
+  # class AdbDevice:
+  #     name: str
+  #     adb_path: Path
+  #     address: str
+  #     screencap_methods: int
+  #     input_methods: int
+  #     config: Dict[str, Any]
+
+  filter: |
+    [device for device in devices if device.name == "LDPlayer"][0:1]

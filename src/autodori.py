@@ -54,6 +54,7 @@ DEFAULT_MOVE_SLICE_SIZE = 10
 MAX_FAILED_TIMES = 10
 CMD_SLICE_SIZE = 100
 
+config = yaml.safe_load(config_path.read_text(encoding="utf-8"))
 maaresource = Resource()
 maatasker = Tasker()
 maacontroller: AdbController = None
@@ -480,6 +481,8 @@ def init_maa():
                 (d.name, d.address) for d in _device
             ]:
                 _device.append(device)
+    filter_str = config.get("device", {}).get("filter")
+    _device = eval(filter_str, {}, {"devices": _device})
 
     if not _device:
         logging.fatal("No supported devices were found.")
