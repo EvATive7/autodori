@@ -463,7 +463,10 @@ def init_maa():
     res_job = maaresource.post_bundle(resource_path)
     res_job.wait()
     Toolkit.init_option(user_path)
-    adb_devices = Toolkit.find_adb_devices()
+    for i in range(3):
+        adb_devices = Toolkit.find_adb_devices()
+        if adb_devices:
+            break
     if not adb_devices:
         logging.fatal("No ADB device found.")
         sys.exit(1)
@@ -496,7 +499,10 @@ def init_maa():
         input_methods=device.input_methods,
         config=device.config,
     )
-    maacontroller.post_connection().wait()
+
+    for i in range(3):
+        if maacontroller.post_connection().wait().succeeded:
+            break
 
     # tasker = Tasker(notification_handler=MyNotificationHandler())
     maatasker.bind(maaresource, maacontroller)
