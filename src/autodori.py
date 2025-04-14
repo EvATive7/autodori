@@ -481,7 +481,7 @@ def init_maa():
                 (d.name, d.address) for d in _device
             ]:
                 _device.append(device)
-    filter_str = config.get("device", {}).get("filter")
+    filter_str = config.get("device", {}).get("filter", "devices")
     _device = eval(filter_str, {}, {"devices": _device})
 
     if not _device:
