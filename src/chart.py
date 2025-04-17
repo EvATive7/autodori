@@ -428,10 +428,13 @@ class Chart:
                 self._a2c_offset += wait_offset
                 wait_for = action["length"]
 
-                if self._a2c_offset != 0:
-                    adjust = min(wait_for, self._a2c_offset, 2)
-                    wait_for -= adjust
-                    self._a2c_offset -= adjust
+                OFFSET_LIMIT = 2
+                offset_adjust = min(
+                    wait_for,
+                    min(OFFSET_LIMIT, max(-OFFSET_LIMIT, self._a2c_offset)),
+                )
+                wait_for -= offset_adjust
+                self._a2c_offset -= offset_adjust
 
                 LOSS_LIMIT = 2
                 rounded_loss_adjust = min(
