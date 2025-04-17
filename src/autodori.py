@@ -596,7 +596,7 @@ def configure_log():
         handlers=[
             logging.StreamHandler(),
             logging.FileHandler(
-                "debug/python-{}.log".format(
+                "debug/autodori-{}.log".format(
                     datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
                 ),
                 mode="w",
