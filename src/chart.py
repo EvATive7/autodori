@@ -42,7 +42,7 @@ class Chart:
 
         self.actions_to_cmd_index = 0
         self._actions_to_cmd_offset = 0
-        self._actions_to_cmd_rounded_loss = 0.0
+        self._a2c_rounded_loss = 0.0
 
     def _beat_to_time(self, beat: float) -> float:
         if not self._bpms:
@@ -433,23 +433,15 @@ class Chart:
                     wait_for -= adjust
                     self._actions_to_cmd_offset -= adjust
 
-                # TODO: clearer
-                if self._actions_to_cmd_rounded_loss > 0:
-                    wait_for += self._actions_to_cmd_rounded_loss
-                    self._actions_to_cmd_rounded_loss -= (
-                        self._actions_to_cmd_rounded_loss
-                    )
+                if self._a2c_rounded_loss < 0:
+                    rounded_loss_adjust = self._a2c_rounded_loss
                 else:
-                    rounded_loss_abs = abs(self._actions_to_cmd_rounded_loss)
-                    if wait_for < rounded_loss_abs:
-                        wait_for = 0
-                        self._actions_to_cmd_rounded_loss += wait_for
-                    else:
-                        wait_for += self._actions_to_cmd_rounded_loss
-                        self._actions_to_cmd_rounded_loss = 0
+                    rounded_loss_adjust = min(wait_for, self._a2c_rounded_loss)
+                wait_for -= rounded_loss_adjust
+                self._a2c_rounded_loss -= rounded_loss_adjust
 
                 rounded_waitfor = round(wait_for)
-                self._actions_to_cmd_rounded_loss += wait_for - rounded_waitfor
+                self._a2c_rounded_loss -= wait_for - rounded_waitfor
                 if rounded_waitfor > 0.01:
                     append(builder.commit())
                     append(builder.wait(rounded_waitfor))
