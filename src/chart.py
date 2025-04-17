@@ -41,7 +41,7 @@ class Chart:
         self._process_time_chart()
 
         self.actions_to_cmd_index = 0
-        self._actions_to_cmd_offset = 0
+        self._a2c_offset = 0
         self._a2c_rounded_loss = 0.0
 
     def _beat_to_time(self, beat: float) -> float:
@@ -390,10 +390,10 @@ class Chart:
             action_type = action["type"]
             action_index = action["index"]
 
-            self._actions_to_cmd_offset += interval_offset
+            self._a2c_offset += interval_offset
 
             if action_type == "down":
-                self._actions_to_cmd_offset += down_offset
+                self._a2c_offset += down_offset
                 finger = action["finger"]
                 append(
                     builder.down(
@@ -406,7 +406,7 @@ class Chart:
                     action_index,
                 )
             elif action_type == "move":
-                self._actions_to_cmd_offset += move_offset
+                self._a2c_offset += move_offset
                 finger = action["finger"]
                 append(
                     builder.move(
@@ -420,18 +420,18 @@ class Chart:
                 )
 
             elif action_type == "up":
-                self._actions_to_cmd_offset += up_offset
+                self._a2c_offset += up_offset
                 finger = action["finger"]
                 append(builder.up(finger), action_index)
 
             elif action_type == "wait":
-                self._actions_to_cmd_offset += wait_offset
+                self._a2c_offset += wait_offset
                 wait_for = action["length"]
 
-                if self._actions_to_cmd_offset != 0:
-                    adjust = min(wait_for, self._actions_to_cmd_offset, 2)
+                if self._a2c_offset != 0:
+                    adjust = min(wait_for, self._a2c_offset, 2)
                     wait_for -= adjust
-                    self._actions_to_cmd_offset -= adjust
+                    self._a2c_offset -= adjust
 
                 LOSS_LIMIT = 2
                 rounded_loss_adjust = min(

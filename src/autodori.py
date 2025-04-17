@@ -377,7 +377,7 @@ def play_song():
                 # total_cost += type_data["total_offset"] - OFFSET[type_] * total
                 OFFSET[type_] = type_data["total_offset"] / total
 
-        current_chart._actions_to_cmd_offset += total_cost
+        current_chart._a2c_offset += total_cost
         logging.debug("Adjust offset: {}".format(OFFSET))
         logging.debug("Adjust _actions_to_cmd_offset: {}".format(total_cost))
 
