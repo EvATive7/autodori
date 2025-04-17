@@ -433,10 +433,11 @@ class Chart:
                     wait_for -= adjust
                     self._actions_to_cmd_offset -= adjust
 
-                if self._a2c_rounded_loss < 0:
-                    rounded_loss_adjust = self._a2c_rounded_loss
-                else:
-                    rounded_loss_adjust = min(wait_for, self._a2c_rounded_loss)
+                LOSS_LIMIT = 2
+                rounded_loss_adjust = min(
+                    wait_for,
+                    min(LOSS_LIMIT, max(-LOSS_LIMIT, self._a2c_rounded_loss)),
+                )
                 wait_for -= rounded_loss_adjust
                 self._a2c_rounded_loss -= rounded_loss_adjust
 
