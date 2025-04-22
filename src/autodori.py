@@ -374,7 +374,7 @@ def play_song():
             type_data = callback_data[type_]
             total = type_data["total"]
             if total != 0:
-                # total_cost += type_data["total_offset"] - OFFSET[type_] * total
+                total_cost += type_data["total_offset"] - OFFSET[type_] * total
                 OFFSET[type_] = type_data["total_offset"] / total
 
         current_chart._a2c_offset += total_cost

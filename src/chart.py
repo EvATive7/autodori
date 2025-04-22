@@ -428,11 +428,14 @@ class Chart:
                 self._a2c_offset += wait_offset
                 wait_for = action["length"]
 
-                OFFSET_LIMIT = 2
+                OFFSET_LIMIT = 1
                 offset_adjust = min(
                     wait_for,
                     min(OFFSET_LIMIT, max(-OFFSET_LIMIT, self._a2c_offset)),
                 )
+                # self._logger.debug(
+                #    f"self._a2c_offset: {self._a2c_offset}, wait_for: {wait_for}, adjust: {offset_adjust}"
+                # )
                 wait_for -= offset_adjust
                 self._a2c_offset -= offset_adjust
 
