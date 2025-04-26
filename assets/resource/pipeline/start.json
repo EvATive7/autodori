@@ -70,8 +70,8 @@
             "tap_to_next",
             "close_button",
             "start_reader_menu",
-            "safe_random_click",
-            "download"
+            "download",
+            "safe_random_click"
         ],
         "timeout": 120000
     },
