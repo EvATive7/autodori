@@ -41,8 +41,8 @@ class Chart:
         self._process_time_chart()
 
         self.actions_to_cmd_index = 0
-        self._actions_to_cmd_offset = 0
-        self._actions_to_cmd_rounded_loss = 0.0
+        self._a2c_offset = 0
+        self._a2c_rounded_loss = 0.0
 
     def _beat_to_time(self, beat: float) -> float:
         if not self._bpms:
@@ -390,10 +390,10 @@ class Chart:
             action_type = action["type"]
             action_index = action["index"]
 
-            self._actions_to_cmd_offset += interval_offset
+            self._a2c_offset += interval_offset
 
             if action_type == "down":
-                self._actions_to_cmd_offset += down_offset
+                self._a2c_offset += down_offset
                 finger = action["finger"]
                 append(
                     builder.down(
@@ -406,7 +406,7 @@ class Chart:
                     action_index,
                 )
             elif action_type == "move":
-                self._actions_to_cmd_offset += move_offset
+                self._a2c_offset += move_offset
                 finger = action["finger"]
                 append(
                     builder.move(
@@ -420,36 +420,35 @@ class Chart:
                 )
 
             elif action_type == "up":
-                self._actions_to_cmd_offset += up_offset
+                self._a2c_offset += up_offset
                 finger = action["finger"]
                 append(builder.up(finger), action_index)
 
             elif action_type == "wait":
-                self._actions_to_cmd_offset += wait_offset
+                self._a2c_offset += wait_offset
                 wait_for = action["length"]
 
-                if self._actions_to_cmd_offset != 0:
-                    adjust = min(wait_for, self._actions_to_cmd_offset, 2)
-                    wait_for -= adjust
-                    self._actions_to_cmd_offset -= adjust
+                OFFSET_LIMIT = 1
+                offset_adjust = min(
+                    wait_for,
+                    min(OFFSET_LIMIT, max(-OFFSET_LIMIT, self._a2c_offset)),
+                )
+                # self._logger.debug(
+                #    f"self._a2c_offset: {self._a2c_offset}, wait_for: {wait_for}, adjust: {offset_adjust}"
+                # )
+                wait_for -= offset_adjust
+                self._a2c_offset -= offset_adjust
 
-                # TODO: clearer
-                if self._actions_to_cmd_rounded_loss > 0:
-                    wait_for += self._actions_to_cmd_rounded_loss
-                    self._actions_to_cmd_rounded_loss -= (
-                        self._actions_to_cmd_rounded_loss
-                    )
-                else:
-                    rounded_loss_abs = abs(self._actions_to_cmd_rounded_loss)
-                    if wait_for < rounded_loss_abs:
-                        wait_for = 0
-                        self._actions_to_cmd_rounded_loss += wait_for
-                    else:
-                        wait_for += self._actions_to_cmd_rounded_loss
-                        self._actions_to_cmd_rounded_loss = 0
+                LOSS_LIMIT = 2
+                rounded_loss_adjust = min(
+                    wait_for,
+                    min(LOSS_LIMIT, max(-LOSS_LIMIT, self._a2c_rounded_loss)),
+                )
+                wait_for -= rounded_loss_adjust
+                self._a2c_rounded_loss -= rounded_loss_adjust
 
                 rounded_waitfor = round(wait_for)
-                self._actions_to_cmd_rounded_loss += wait_for - rounded_waitfor
+                self._a2c_rounded_loss -= wait_for - rounded_waitfor
                 if rounded_waitfor > 0.01:
                     append(builder.commit())
                     append(builder.wait(rounded_waitfor))

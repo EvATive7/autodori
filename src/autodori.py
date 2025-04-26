@@ -368,40 +368,18 @@ def play_song():
         return wait_for
 
     def _adjust_offset():
-        callback_data_lock.acquire()
         global callback_data
+        total_cost = 0.0
         for type_ in ["up", "down", "move", "wait", "interval"]:
             type_data = callback_data[type_]
             total = type_data["total"]
             if total != 0:
+                total_cost += type_data["total_offset"] - OFFSET[type_] * total
                 OFFSET[type_] = type_data["total_offset"] / total
-        reset_callback_data()
-        callback_data_lock.release()
+
+        current_chart._a2c_offset += total_cost
         logging.debug("Adjust offset: {}".format(OFFSET))
-
-    def _adjust_actions_to_cmd_offset():
-        with cmd_log_list_lock:
-            _log_list = cmd_log_list.copy()
-
-        [_log_list.remove(i) for i in _log_list.copy() if i.cmd == "c"]
-
-        def _get_cmd_during(_cmd_last_index: int):
-            cmd_begin_time = _log_list[0].start_time
-            cmd_last_time = _log_list[_cmd_last_index].start_time
-            return cmd_last_time - cmd_begin_time
-
-        def _get_action_during(_action_last_index: int):
-            action_begin_time = current_chart.actions[0]["time"]
-            action_last_time = current_chart.actions[_action_last_index]["time"]
-            return action_last_time - action_begin_time
-
-        cmd_index = len(_log_list) - 1
-        cmd_during = _get_cmd_during(-1)
-        action_during = _get_action_during(cmd_index)
-
-        logging.debug(f"cmd_during: {cmd_during}, action_during: {action_during}")
-
-        current_chart._actions_to_cmd_offset += cmd_during - action_during
+        logging.debug("Adjust _actions_to_cmd_offset: {}".format(total_cost))
 
     wait_first_note()
 
@@ -412,8 +390,9 @@ def play_song():
 
         index = current_chart.actions_to_cmd_index
         if current_chart.actions[index : index + CMD_SLICE_SIZE]:
-            _adjust_offset()
-            # _adjust_actions_to_cmd_offset()
+            with callback_data_lock:
+                _adjust_offset()
+                reset_callback_data()
             current_chart.actions_to_MNTcmd(
                 (mnt.max_x, mnt.max_y), current_orientation, OFFSET, CMD_SLICE_SIZE
             )
@@ -596,7 +575,7 @@ def configure_log():
         handlers=[
             logging.StreamHandler(),
             logging.FileHandler(
-                "debug/python-{}.log".format(
+                "debug/autodori-{}.log".format(
                     datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
                 ),
                 mode="w",
