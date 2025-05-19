@@ -43,9 +43,9 @@ body:
     attributes:
       label: Version
       description: >-
-        Please provide the MXX version.
+        请提供 autodori 版本（你在releases中下载autodori时，显示的版本号）（例如V1.0.5）
       placeholder: |
-        MXX Version:
+        autodori Version:
     validations:
       required: true
   - type: textarea
@@ -53,15 +53,15 @@ body:
     attributes:
       label: Log and config files
       description: >-
-        **After closing MXX, upload the following 3 files:**
-          1. The `maa.log` and `maa.bak.log` log file in the `debug` folder, and indicate the approximate point in time when the problem occurred.
-          2. The `maa_pi_config.json`(MaaPiCli) config file in the `config` folder
+        **After closing autodori, upload the following 3 files:**
+          1. The `maa.log` `maa.bak.log`(if any) log file in the `debug` folder, and the approximate time when the problem occurred
+          2. There may be multiple files in this form in the `autodori-xxxxxx-xxxx` log file in the `debug` folder. You should select the log file recorded when the error occurred (usually the last time)
+          3. The `maa_pi_config.json`(MaaPiCli) config file in the `config` folder
 
-        If you are using MacBook, please click the "File" option in the top-left corner of the screen, then click "Open Log Folder".
         **Please drag and drop the full file in, not your own cuttings or copies;**
         **compress it before uploading if too large.**
       placeholder: |
-        Please confirm that MXX is not running before uploading files.
+        Please confirm that autodori is closed before uploading files
     validations:
       required: true
   - type: textarea
@@ -77,16 +77,16 @@ body:
   - type: textarea
     id: screenshots
     attributes:
-      label: Screenshots or recordings
+      label: Screenshot or screen recording (if any)
       description: >-
         In the `debug` directory, within the functionally categorized folders, 
         there are some error images captured automatically.
         If related to this issue, please upload them together.
 
         If available, upload screenshots and recordings to help explain your problem,
-        including but not limited to screenshots of MXX software,
-        screenshots of game screens, MXX debug screenshots (`debug/vision` path pictures,
-        after modifying `save_draw` in `config/maa_option.json` to `true`, run MXX again to obtain)
+        including but not limited to screenshots of autodori software,
+        screenshots of game screens, autodori debug screenshots (`debug/vision` path pictures,
+        after modifying `save_draw` in `config/maa_option.json` to `true`, run autodori again to obtain)
 
         If the problem is **recognition related**, please help by providing
         the **original image** taken by the emulator's own screenshot tool

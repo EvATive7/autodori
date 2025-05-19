@@ -29,9 +29,9 @@ body:
     attributes:
       label: Version
       description: >-
-        请提供 MXX 版本
+        请提供 autodori 版本（你在releases中下载autodori时，显示的版本号）（例如V1.0.5）
       placeholder: |
-        MXX Version:
+        autodori Version:
     validations:
       required: true
   - type: textarea
@@ -39,14 +39,14 @@ body:
     attributes:
       label: 日志和配置文件
       description: |
-        **请在关闭 MXX 后，上传以下 3 个文件：**
-          1. `debug` 文件夹中的 `maa.log` `maa.bak.log` 日志文件，并说明问题出现的大致时间点
-          2. `config` 文件夹中的 `maa_pi_config.json`(MaaPiCli) 配置文件
+        **请在关闭 autodori 后，上传以下 3 个文件：**
+          1. `debug` 文件夹中的 `maa.log` `maa.bak.log`（如有） 日志文件，并说明问题出现的大致时间点
+          2. `debug` 文件夹中的 `autodori-xxxxxxxx-xxxxxx` 日志文件，可能有多个这种形式的文件，你应该选择错误发生时记录的日志文件（通常是最后一次）
+          3. `config` 文件夹中的 `maa_pi_config.json`(MaaPiCli) 配置文件
 
-        如果你在使用 MacBook，请点击屏幕左上角的“文件”，点击“打开日志文件夹”
         **请直接将完整的文件拖拽进来，而非自己裁切或复制的片段；若文件体积过大可压缩后再上传**
       placeholder: |
-        请确认上传文件前已关闭 MXX
+        请确认上传文件前已关闭 autodori
     validations:
       required: true
   - type: textarea
@@ -62,12 +62,12 @@ body:
   - type: textarea
     id: screenshots
     attributes:
-      label: 截图或录屏
+      label: 截图或录屏（如有）
       description: |
         `debug` 目录下按功能分类的文件夹内，有一些自动截图的错误图片，若有相关的，请一并打包上传
 
-        可上传屏幕截图或录制以帮助解释你的问题，包括但不限于 MXX 软件截图、游戏画面截图、
-        MXX debug 截图（`debug/vision` 路径图片，在修改 `config/maa_option.json` 中 `save_draw` 为 `true` 后再次运行 MXX 获取）
+        可上传屏幕截图或录制以帮助解释你的问题，包括但不限于 autodori 软件截图、游戏画面截图、
+        autodori debug 截图（`debug/vision` 路径图片，在修改 `config/maa_option.json` 中 `save_draw` 为 `true` 后再次运行 autodori 获取）
         若是**识别相关问题**，请尽可能提供模拟器自带的截图工具截取的无遮挡的**原图**（或通过 adb 截取原图）
         用其他的工具（如QQ/微信）截取的图片包含窗口边框且长宽比、分辨率不固定，不利于我们排除bug
         若文件体积过大可压缩后再上传
