@@ -563,6 +563,7 @@ def init_player_and_mnt():
         communicate_type=MNTServerCommunicateType.STDIO,
         mnt_asset_path=Path("./assets/minitouch_EvATive7"),
         callback=mnt_callback,
+        adb_executor=str(device.adb_path.absolute()),
     )
 
     logging.info("Mumu and MNT inited.")
