@@ -45,10 +45,21 @@
     },
     "tap_to_next": {
         "recognition": "OCR",
-        "expected": "TAP TO NEXT",
+        "expected": [
+            "TAPTONEXT",
+            "taptonext",
+            ".*NEXT.*",
+            ".*next.*"
+        ],
         "action": "Click",
         "timeout": 6000,
-        "post_delay": 500
+        "post_delay": 500,
+        "roi": [
+            512,
+            640,
+            234,
+            51
+        ]
     },
     "to_tome": {
         "recognition": "TemplateMatch",
