@@ -68,7 +68,7 @@ In addition to python packages, this project also references, modifies, or distr
 
 - [minitouch ver.EvATive7](https://github.com/EvATive7/minitouch) (Apache License 2.0)
 - [MaaFramework](https://github.com/MaaXYZ/MaaFramework) (LGPLv3)
-- [MaaYYS/build.py](https://github.com/MaaYYS/build.py) (MIT)
+- [MaaYYS/build.py](https://github.com/TanyaShue/MaaYYs) (MIT)
 
 This project distributes the following closed-source dynamic link libraries, which are not open source parts of the project and are not subject to the project license:
 
