@@ -175,11 +175,15 @@ class LiveBoostEnoughRecognition(CustomRecognition):
         ).best_result.text
 
         logging.debug("Live boost rec result: {}".format(live_boost))
-        live_boost = live_boost.replace("/10", "")
+        pattern = r"^\s*(\d+)\s*/"
+        match = re.match(pattern, live_boost.replace(" ", ""))
 
-        try:
-            live_boost = int(live_boost)
-        except:
+        if match:
+            try:
+                live_boost = int(match.group(1))
+            except:
+                live_boost = -1
+        else:
             live_boost = -1
 
         logging.debug("Live boost: {}".format(live_boost))
