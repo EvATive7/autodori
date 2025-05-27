@@ -54,7 +54,7 @@
 > 3. `python -m venv .venv`  
 > 4. `.venv\Scripts\activate`  
 > 5. `pip install -r requirements.txt`
-> 6. 下载 [minitouch (EvATive7 ver.)](https://github.com/EvATive7/minitouch), 并将其放入assets/minitouch_EvATive7文件夹
+> 6. 执行`python build.py`（`build.py`会自动整理和下载必要的依赖项）
 
 ## 注意
 

@@ -53,7 +53,7 @@ A BanG Dream! helper
 > 3. `python -m venv .venv`  
 > 4. `.venv\Scripts\activate`  
 > 5. `pip install -r requirements.txt`
-> 6. Download [minitouch (EvATive7 ver.)](https://github.com/EvATive7/minitouch), and put it into assets/minitouch_EvATive7 folder
+> 6. Execute `python build.py` (`build.py` will automatically organize and download necessary dependencies)
 
 ## Note
 
