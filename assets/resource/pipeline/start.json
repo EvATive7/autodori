@@ -3,7 +3,8 @@
         "action": "StartApp",
         "package": "com.bilibili.star.bili",
         "next": [
-            "find_startpage_menu"
+            "find_startpage_menu",
+            "live_home_button"
         ],
         "interrupt": [
             "ok_button",
