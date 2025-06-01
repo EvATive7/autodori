@@ -72,6 +72,7 @@
             "close_button",
             "start_reader_menu",
             "download",
+            "connect_failed",
             "safe_random_click"
         ],
         "timeout": 300000
