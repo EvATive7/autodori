@@ -198,12 +198,13 @@
         "custom_action_param": {
             "succeed": true
         },
-        "next": "liveagain",
+        "next": "live_home_button",
         "interrupt": [
             "next_button",
             "close_button",
             "ok_button",
-            "confirm_button"
+            "confirm_button",
+            "reader_menu"
         ]
     },
     "liveagain": {
