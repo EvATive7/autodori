@@ -13,7 +13,7 @@ A BanG Dream! helper
 
 - [x] Auto-launch game and auto-play songs
 - [x] Compatible with Windows, Mumu, and LDPlayer emulators
-- [x] Optimized performance, low latency, and high accuracy
+- [x] Ultra-low performance overhead, low latency, and high accuracy
 - [x] Usable with the Chinese server
 - [ ] Auto-collect rewards and auto daily gacha x3
 - [ ] Compatibility with Linux, macOS, and other emulators (awaiting other emulators to implement IPCAPI)
@@ -41,7 +41,7 @@ A BanG Dream! helper
 > 1. In the game’s “Performance Settings,” set the scroll speed to 8.0
 > 1. In “Performance Effects & Volume Settings,” disable “3D Cut-in Mode” and set “Motion Mode” to “Lightweight”
 > 1. For better experience, enable “FAST/SLOW Display” and “Perfect Status Display” in “Performance Effects & Volume Settings”
-> 1. Connect to the emulator using adb
+> 1. Start the simulator and ensure its adb functions correctly
 
 1. Download the latest release from [release](https://github.com/EvATive7/autodori/releases)  
 2. Extract the archive and run `autodori.exe`
