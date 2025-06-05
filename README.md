@@ -2,13 +2,13 @@
 
 # Autodori  
 
-邦多利自动打歌器 | 📘 [English Version](./README.en.md)
+邦多利小助手 | 📘 [English Version](./README.en.md)
 
 ![Pipeline](https://img.shields.io/badge/Pipeline-%23454545?logo=paddypower&logoColor=%23FFFFFF)  ![python](https://img.shields.io/badge/Python-3776AB?logo=python&logoColor=white)  
 
 </div>
 
-## 功能
+## ✨ 功能
 
 - [x] 自动启动游戏、自动清火
 - [x] Windows、Mumu、雷电模拟器兼容
@@ -29,7 +29,7 @@
 ![ ](./docs/achievements/SENSENFUKOKU.png)  
 *红SENSENFUKOKU AP*
 
-## 使用方法
+## 🛠 使用方法
 
 > [!IMPORTANT]  
 > 在使用此脚本之前，请确保前置条件：
@@ -45,6 +45,7 @@
 1. 从[release](https://github.com/EvATive7/autodori/releases)下载最新版  
 2. 解压，并运行`autodori.exe`
 3. 使用命令行`autodori.exe -h`可以查看更多选项
+4. 你可以修改 `data/config.yml` 来更改配置：[配置文件示例](./docs/config_eg/config.yml)
 
 > [!NOTE]  
 > 如果你懂代码 / 需要自行调参或修改代码以获得更好的效果 / 凹分 / 需要测试、开发，请从源码运行：  
@@ -56,13 +57,12 @@
 > 5. `pip install -r requirements.txt`
 > 6. 执行`python build.py`（`build.py`会自动整理和下载必要的依赖项）
 
-## 注意
+## ⚠️ 注意
 
 1. 推荐使用最新版本的Mumu模拟器。在雷电模拟器上测试次数较少，且其似乎存在性能问题。
 1. 脚本尚不完善，可能发生错误。欢迎Issue和PR。
-1. 你可以修改data/config.yml来更改配置：[配置文件示例](./docs/config_eg/config.yml)
 
-## 许可证和版权
+## 📝 许可证和版权
 
 本项目在GPLv3许可下开放源代码，修改、复制、分发本项目请遵守[项目许可证](LICENSE)。  
 除了python包外，本项目还直接引用、修改或分发了以下开源代码、组件或二进制：
