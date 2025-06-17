@@ -597,13 +597,18 @@ def _get_set_difficulty_pipeline():
         "normal": [768, 494, 107, 97],
         "hard": [886, 494, 105, 97],
         "expert": [996, 493, 107, 97],
+        "special": [1086, 449, 192, 184],
     }[difficulty]
 
     return {
         "set_difficulty": {
             "action": "Click",
-            "next": "comfirm_song",
-            "interrupt": ["confirm_button"],
+            "recognition": "TemplateMatch",
+            "template": [
+                f"live\\difficulty\\{difficulty}_active.png",
+                f"live\\difficulty\\{difficulty}_inactive.png",
+            ],
+            "next": "get_song_name",
             "target": roi,
         }
     }
@@ -625,7 +630,7 @@ def main():
     parser.add_argument(
         "--difficulty",
         type=str,
-        choices=["easy", "normal", "hard", "expert"],
+        choices=["easy", "normal", "hard", "expert", "special"],
         help="Specify the difficulty for main mode",
         default="hard",
     )

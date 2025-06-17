@@ -52,7 +52,7 @@
         "action": "Click",
         "post_delay": 2000,
         "next": [
-            "get_song_name",
+            "set_difficulty",
             "random_choice_song",
             "select_song",
             "freelive",
@@ -64,7 +64,10 @@
         "recognition": "Custom",
         "custom_recognition": "SongRecognition",
         "custom_action": "SaveSong",
-        "next": "set_difficulty"
+        "next": "comfirm_song",
+        "interrupt": [
+            "confirm_button"
+        ]
     },
     "set_difficulty": {},
     "comfirm_song": {
