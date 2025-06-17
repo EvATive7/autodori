@@ -204,7 +204,8 @@
             "close_button",
             "ok_button",
             "confirm_button",
-            "reader_menu"
+            "reader_menu",
+            "read_after"
         ]
     },
     "liveagain": {
