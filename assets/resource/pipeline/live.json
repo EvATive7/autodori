@@ -145,6 +145,7 @@
         "template": "live/button/startlive.png",
         "next": "wait_live_start",
         "interrupt": [
+            "startlive",
             "confirm_button",
             "login_expired",
             "connect_failed"
