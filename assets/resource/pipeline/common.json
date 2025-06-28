@@ -6,37 +6,37 @@
     },
     "close_button": {
         "recognition": "TemplateMatch",
-        "template": "common\\button\\close\\white.png",
+        "template": "common/button/close/white.png",
         "action": "Click"
     },
     "confirm_button": {
         "recognition": "TemplateMatch",
         "template": [
-            "common\\button\\confirm\\pink.png",
-            "common\\button\\confirm\\white.png"
+            "common/button/confirm/pink.png",
+            "common/button/confirm/white.png"
         ],
         "action": "Click"
     },
     "reader_menu": {
         "recognition": "TemplateMatch",
-        "template": "common\\reader\\menu.png",
+        "template": "common/reader/menu.png",
         "action": "Click",
         "next": "reader_skip"
     },
     "reader_skip": {
         "recognition": "TemplateMatch",
-        "template": "common\\reader\\skip.png",
+        "template": "common/reader/skip.png",
         "action": "Click",
         "next": "skip_button"
     },
     "read_after": {
         "recognition": "TemplateMatch",
-        "template": "common\\reader\\readafter.png",
+        "template": "common/reader/readafter.png",
         "action": "Click"
     },
     "skip_button": {
         "recognition": "TemplateMatch",
-        "template": "common\\button\\skip\\pink.png",
+        "template": "common/button/skip/pink.png",
         "action": "Click"
     },
     "next_button": {
@@ -48,15 +48,15 @@
     "ok_button": {
         "recognition": "TemplateMatch",
         "template": [
-            "common\\button\\ok\\white.png"
+            "common/button/ok/white.png"
         ],
         "action": "Click"
     },
     "exit_button": {
         "recognition": "TemplateMatch",
         "template": [
-            "common\\button\\exit\\pink.png",
-            "common\\button\\exit\\white.png"
+            "common/button/exit/pink.png",
+            "common/button/exit/white.png"
         ],
         "action": "Click"
     },
@@ -80,7 +80,7 @@
     },
     "to_tome": {
         "recognition": "TemplateMatch",
-        "template": "common\\button\\menu\\main.png",
+        "template": "common/button/menu/main.png",
         "action": "Click",
         "post_delay": 1000,
         "next": [
@@ -89,18 +89,18 @@
     },
     "menu_home": {
         "recognition": "TemplateMatch",
-        "template": "common\\button\\menu\\home.png",
+        "template": "common/button/menu/home.png",
         "action": "Click",
         "post_delay": 1500
     },
     "backtitle_button": {
         "recognition": "TemplateMatch",
-        "template": "common\\button\\backtitle\\white.png",
+        "template": "common/button/backtitle/white.png",
         "action": "Click"
     },
     "retry_button": {
         "recognition": "TemplateMatch",
-        "template": "common\\button\\retry\\pink.png",
+        "template": "common/button/retry/pink.png",
         "action": "Click"
     },
     "login_expired": {

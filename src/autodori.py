@@ -605,8 +605,8 @@ def _get_set_difficulty_pipeline():
             "action": "Click",
             "recognition": "TemplateMatch",
             "template": [
-                f"live\\difficulty\\{difficulty}_active.png",
-                f"live\\difficulty\\{difficulty}_inactive.png",
+                f"live/difficulty/{difficulty}_active.png",
+                f"live/difficulty/{difficulty}_inactive.png",
             ],
             "next": "get_song_name",
             "target": roi,

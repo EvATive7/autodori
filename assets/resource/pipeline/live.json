@@ -1,7 +1,7 @@
 {
     "live_home_button": {
         "recognition": "TemplateMatch",
-        "template": "live\\button\\live_home.png",
+        "template": "live/button/live_home.png",
         "action": "Click",
         "next": [
             "freelive",
@@ -48,7 +48,7 @@
     },
     "random_choice_song": {
         "recognition": "TemplateMatch",
-        "template": "live\\button\\random_choice_song.png",
+        "template": "live/button/random_choice_song.png",
         "action": "Click",
         "post_delay": 2000,
         "next": [
@@ -126,8 +126,8 @@
     "disable_liveplay": {
         "recognition": "TemplateMatch",
         "template": [
-            "live\\button\\liveplay_3d.png",
-            "live\\button\\liveplay_mv.png"
+            "live/button/liveplay_3d.png",
+            "live/button/liveplay_mv.png"
         ],
         "inverse": true,
         "next": "startlive",
@@ -142,7 +142,7 @@
     "startlive": {
         "action": "Click",
         "recognition": "TemplateMatch",
-        "template": "live\\button\\startlive.png",
+        "template": "live/button/startlive.png",
         "next": "wait_live_start",
         "interrupt": [
             "confirm_button",
@@ -153,7 +153,7 @@
     },
     "wait_live_start": {
         "recognition": "TemplateMatch",
-        "template": "live\\button\\pause.png",
+        "template": "live/button/pause.png",
         "next": "playsong"
     },
     "playsong": {
@@ -173,7 +173,7 @@
     },
     "wait_playresult": {
         "recognition": "TemplateMatch",
-        "template": "live\\scored.png",
+        "template": "live/scored.png",
         "next": "wait_playresult1",
         "pre_wait_freezes": {
             "threshold": 0.65,
@@ -189,7 +189,7 @@
     },
     "wait_playresult1": {
         "recognition": "TemplateMatch",
-        "template": "live\\scored.png",
+        "template": "live/scored.png",
         "pre_wait_freezes": 2000,
         "next": "save_succeed_playresult"
     },
@@ -213,7 +213,7 @@
     },
     "liveagain": {
         "recognition": "TemplateMatch",
-        "template": "live\\button\\liveagain.png",
+        "template": "live/button/liveagain.png",
         "action": "Click",
         "next": "select_song"
     },
