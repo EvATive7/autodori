@@ -3,6 +3,7 @@
         "recognition": "TemplateMatch",
         "template": "live/button/live_home.png",
         "action": "Click",
+        "post_delay": 1500,
         "next": [
             "freelive",
             "live_home_button"
