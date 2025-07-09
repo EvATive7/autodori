@@ -99,7 +99,7 @@ def check_song_available(name, id_, difficulty):
     lastmatched = PlayRecord.get_or_none(chart_id=id_, difficulty=difficulty)
     if lastmatched:
         if not lastmatched.succeed:
-            return False
+            return True
 
     return True
 
@@ -610,6 +610,8 @@ def _get_set_difficulty_pipeline():
             ],
             "next": "get_song_name",
             "target": roi,
+            "timeout": 5000,
+            "interrupt": ["random_choice_song"],
         }
     }
 
