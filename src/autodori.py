@@ -635,10 +635,9 @@ def check_update():
         version = requests.get(
             "https://api.github.com/repos/EvATive7/autodori/releases/latest"
         ).json()["tag_name"]
+        logging.debug(f"Current version: {current_version}")
+        logging.debug(f"Newest version: {version}")
         if version != current_version:
-            logging.debug(f"Current version: {current_version}")
-            logging.debug(f"New version: {version}")
-
             ORANGE = "\033[38;5;208m"
             BOLD = "\033[1m"
             RESET = "\033[0m"
@@ -649,6 +648,7 @@ def check_update():
             print(
                 f"{ORANGE}{BOLD}An update is available: {version}, download the latest version at https://github.com/EvAtive7/autodori/releases{RESET}"
             )
+            time.sleep(5)
 
     except Exception as e:
         logging.error("failed to check for updates: {}".format(e))
