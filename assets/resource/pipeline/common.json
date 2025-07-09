@@ -27,7 +27,8 @@
         "recognition": "TemplateMatch",
         "template": "common/reader/skip.png",
         "action": "Click",
-        "next": "skip_button"
+        "next": "skip_button",
+        "post_delay": 1500
     },
     "read_after": {
         "recognition": "TemplateMatch",
