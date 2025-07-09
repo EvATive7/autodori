@@ -12,6 +12,8 @@ import time
 from pathlib import Path
 from typing import Optional, Union
 
+import requests
+
 data_path = Path("data")
 data_path.mkdir(exist_ok=True)
 cache_path = Path("cache")
@@ -75,6 +77,7 @@ callback_data: dict = {}
 callback_data_lock = threading.Lock()
 cmd_log_list: list[MNTEvATive7LogEventData] = []
 cmd_log_list_lock = threading.Lock()
+current_version = None
 
 
 def reset_callback_data():
@@ -616,6 +619,41 @@ def _get_set_difficulty_pipeline():
     }
 
 
+def get_current_version():
+    global current_version
+    try:
+        metadata_text = Path("assets/build_metadata.json").read_text(encoding="utf-8")
+        metadata = json.loads(metadata_text)
+        current_version = metadata["version"]
+    except Exception:
+        logging.debug("Failed to get current version")
+
+
+def check_update():
+    logging.debug("Checking for updates...")
+    try:
+        version = requests.get(
+            "https://api.github.com/repos/EvATive7/autodori/releases/latest"
+        ).json()["tag_name"]
+        if version != current_version:
+            logging.debug(f"Current version: {current_version}")
+            logging.debug(f"New version: {version}")
+
+            ORANGE = "\033[38;5;208m"
+            BOLD = "\033[1m"
+            RESET = "\033[0m"
+
+            print(
+                f"{ORANGE}{BOLD}有更新可用：{version}，在 https://github.com/EvATive7/autodori/releases 下载最新版本{RESET}"
+            )
+            print(
+                f"{ORANGE}{BOLD}An update is available: {version}, download the latest version at https://github.com/EvAtive7/autodori/releases{RESET}"
+            )
+
+    except Exception as e:
+        logging.error("failed to check for updates: {}".format(e))
+
+
 def main():
     configure_log()
 
@@ -648,6 +686,10 @@ def main():
         entry = "main"
     else:
         sys.exit(1)
+
+    get_current_version()
+    if current_version != None:
+        check_update()
 
     global DIFFICULTY, MIN_LIVEBOOST
     DIFFICULTY = args.difficulty

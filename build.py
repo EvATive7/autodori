@@ -1,3 +1,4 @@
+import json
 import os
 import shutil
 import site
@@ -12,7 +13,9 @@ import PyInstaller.__main__
 
 
 parser = argparse.ArgumentParser()
-# parser.add_argument( "--version", type=str, help="Specify the version of the script", default="none")
+parser.add_argument(
+    "--version", type=str, help="Specify the version of autodori", default=None
+)
 parser.add_argument(
     "--os",
     type=str,
@@ -26,7 +29,11 @@ parser.add_argument(
     default="none",
 )
 args = parser.parse_args()
-ZIP_FILENAME = f"autodori_{args.os}_{args.arch}.zip"
+if args.version is None:
+    VERSION = "unknown"
+else:
+    VERSION = args.version
+ZIP_FILENAME = f"autodori_{VERSION}_{args.os}_{args.arch}.zip"
 
 
 # 获取当前工作目录
@@ -108,6 +115,7 @@ assets_source_path = os.path.join(current_dir, "assets")
 assets_dest_path = os.path.join(dist_dir, "assets")
 syc_bat_source_path = os.path.join(current_dir, "syc.bat")
 syc_bat_dest_path = os.path.join(dist_dir, "syc.bat")
+metedata_file_path = os.path.join(assets_dest_path, "build_metadata.json")
 
 if not os.path.exists(assets_source_path):
     raise FileNotFoundError("assets folder not found")
@@ -166,6 +174,11 @@ shutil.copytree(
 )
 temp_dir = download_and_extract_minitouch()
 move_minitouch_to_assets(temp_dir)
+json.dump(
+    {"version": args.version},
+    open(metedata_file_path, "w", encoding="utf-8"),
+    ensure_ascii=False,
+)
 
 # # 复制 syc.bat 文件
 # if os.path.exists(syc_bat_source_path):
@@ -196,5 +209,6 @@ for root, dirs, files in os.walk(dist_dir):
             os.remove(file_path)
     for dir in dirs:
         shutil.rmtree(os.path.join(root, dir), ignore_errors=True)
+
 
 print(f"Packaging and compression completed: {zip_filepath}")

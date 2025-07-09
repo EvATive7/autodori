@@ -11,3 +11,4 @@ python-levenshtein
 playhouse
 peewee
 pillow
+pyinstaller

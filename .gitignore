@@ -4,6 +4,7 @@ data/
 config/
 assets/minitouch_EvATive7/
 !assets/minitouch_EvATive7/.gitkeep
+assets/build_metadata.json
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

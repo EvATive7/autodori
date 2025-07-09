@@ -34,7 +34,7 @@ jobs:
       - name: Run build script
         run: |
           pip install pyinstaller
-          python build.py --os ${{ runner.os }} --arch ${{ runner.arch }}
+          python build.py --os ${{ runner.os }} --arch ${{ runner.arch }} --version ${{ github.ref_name }}
 
       - name: Generate Changelog
         run: |
