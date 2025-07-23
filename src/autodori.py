@@ -656,7 +656,7 @@ def check_update():
         ).json()["tag_name"]
         logging.debug(f"Current version: {current_version}")
         logging.debug(f"Newest version: {version}")
-        if version != current_version:
+        if compare_semver(version, current_version) == 1:
             ORANGE = "\033[38;5;208m"
             BOLD = "\033[1m"
             RESET = "\033[0m"

@@ -112,6 +112,40 @@ def generate_function_call_str(function, args, kwargs):
     return f"{function.__name__}({all_args_str})"
 
 
+def compare_semver(v1: str, v2: str) -> int:
+    """
+    比较带 'v' 前缀的语义版本号，如 'v1.2.3'。
+
+    参数:
+        v1 (str): 第一个版本号，如 "v1.2.3"
+        v2 (str): 第二个版本号，如 "v1.3.0"
+
+    返回:
+        -1: 如果 v1 < v2
+         0: 如果 v1 == v2
+         1: 如果 v1 > v2
+    """
+
+    def normalize(v):
+        if v.startswith("v") or v.startswith("V"):
+            v = v[1:]
+        return [int(x) for x in v.split(".")]
+
+    parts1 = normalize(v1)
+    parts2 = normalize(v2)
+
+    max_len = max(len(parts1), len(parts2))
+    parts1 += [0] * (max_len - len(parts1))
+    parts2 += [0] * (max_len - len(parts2))
+
+    for a, b in zip(parts1, parts2):
+        if a < b:
+            return -1
+        elif a > b:
+            return 1
+    return 0
+
+
 class TestSpeedTimer:
     def __init__(self, test_function, args=(), kwargs={}):
         self.test_function = test_function
