@@ -49,6 +49,7 @@ from chart import Chart, PlayRecord
 from util import *
 
 MIN_LIVEBOOST = 1
+LIVEMODE = "freelive"
 DIFFICULTY = "hard"
 OFFSET = {"up": 0, "down": 0, "move": 0, "wait": 0.0, "interval": 0.0}
 PHOTOGATE_LATENCY = 30
@@ -593,7 +594,10 @@ def configure_log():
     )
 
 
-def _get_set_difficulty_pipeline():
+def _get_override_pipeline():
+    all_pipelines = {}
+
+    # set_difficulty
     difficulty: str = DIFFICULTY
     roi = {
         "easy": [659, 495, 107, 97],
@@ -602,21 +606,36 @@ def _get_set_difficulty_pipeline():
         "expert": [996, 493, 107, 97],
         "special": [1086, 449, 192, 184],
     }[difficulty]
-
-    return {
-        "set_difficulty": {
-            "action": "Click",
-            "recognition": "TemplateMatch",
-            "template": [
-                f"live/difficulty/{difficulty}_active.png",
-                f"live/difficulty/{difficulty}_inactive.png",
-            ],
-            "next": "get_song_name",
-            "target": roi,
-            "timeout": 5000,
-            "interrupt": ["random_choice_song"],
-        }
+    all_pipelines["set_difficulty"] = {
+        "action": "Click",
+        "recognition": "TemplateMatch",
+        "template": [
+            f"live/difficulty/{difficulty}_active.png",
+            f"live/difficulty/{difficulty}_inactive.png",
+        ],
+        "next": "get_song_name",
+        "target": roi,
+        "timeout": 5000,
+        "interrupt": ["random_choice_song"],
     }
+
+    # live mode
+    livemode_pipeline = {
+        "recognition": "OCR",
+        "expected": "",
+        "roi": [679, 183, 257, 354],
+        "action": "Click",
+        "post_delay": 1000,
+        "next": ["select_song", "select_live_mode", "live_home_button"],
+        "interrupt": ["login_expired", "connect_failed"],
+    }
+    if LIVEMODE == "freelive":
+        livemode_pipeline["expected"] = "自由演出"
+    elif LIVEMODE == "challengelive":
+        livemode_pipeline["expected"] = "挑战演出"
+    all_pipelines["select_live_mode"] = livemode_pipeline
+
+    return all_pipelines
 
 
 def get_current_version():
@@ -675,6 +694,13 @@ def main():
         default="hard",
     )
     parser.add_argument(
+        "--livemode",
+        type=str,
+        choices=["freelive", "challengelive"],
+        help="Specify the live mode to run",
+        default="freelive",
+    )
+    parser.add_argument(
         "--liveboost",
         type=int,
         default=1,
@@ -691,13 +717,14 @@ def main():
     if current_version != None:
         check_update()
 
-    global DIFFICULTY, MIN_LIVEBOOST
+    global DIFFICULTY, MIN_LIVEBOOST, LIVEMODE
     DIFFICULTY = args.difficulty
+    LIVEMODE = args.livemode
     MIN_LIVEBOOST = args.liveboost
     init_maa()
     init_player_and_mnt()
 
-    maatasker.post_task(entry, _get_set_difficulty_pipeline()).wait().get()
+    maatasker.post_task(entry, _get_override_pipeline()).wait().get()
 
     mnt.stop()
     logging.debug("Ready to exit")

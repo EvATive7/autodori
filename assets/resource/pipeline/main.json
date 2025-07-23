@@ -2,7 +2,7 @@
     "main": {
         "next": [
             "select_song",
-            "freelive",
+            "select_live_mode",
             "live_home_button"
         ],
         "interrupt": [
