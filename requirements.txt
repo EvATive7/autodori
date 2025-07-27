@@ -4,7 +4,7 @@ fuzzywuzzy
 minitouch.py>=1.1.2
 mumuipc.py
 ld-ipc.py
-maafw
+maafw==4.4.0
 numpy
 pyyaml
 python-levenshtein

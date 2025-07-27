@@ -706,6 +706,11 @@ def main():
         default=1,
         help="Specify the min liveboost for main mode. If current liveboost is lower than this value, the script will exit.",
     )
+    parser.add_argument(
+        "--skip-version-check",
+        action="store_true",
+        help="Specify if skip version check",
+    )
     args = parser.parse_args()
 
     if args.mode == "main":
@@ -713,9 +718,10 @@ def main():
     else:
         sys.exit(1)
 
-    get_current_version()
-    if current_version != None:
-        check_update()
+    if not args.skip_version_check:
+        get_current_version()
+        if current_version != None:
+            check_update()
 
     global DIFFICULTY, MIN_LIVEBOOST, LIVEMODE
     DIFFICULTY = args.difficulty
