@@ -61,6 +61,11 @@
         ],
         "action": "Click"
     },
+    "donot_usenow_button": {
+        "recognition": "OCR",
+        "expected": "暂且不使用",
+        "action": "Click"
+    },
     "tap_to_next": {
         "recognition": "OCR",
         "expected": [

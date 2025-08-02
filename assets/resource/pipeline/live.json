@@ -10,7 +10,8 @@
         ],
         "interrupt": [
             "next_button",
-            "close_button"
+            "close_button",
+            "donot_usenow_button"
         ]
     },
     "select_live_mode": {},
