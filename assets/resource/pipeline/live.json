@@ -238,13 +238,14 @@
         "next": "select_song"
     },
     "live_failed": {
-        "recognition": "OCR",
-        "expected": "ライブ失敗",
+        "recognition": "TemplateMatch",
+        "template": "live/failed_dialog.png",
+        "threshold": 0.95,
         "roi": [
-            263,
-            230,
-            144,
-            33
+            209,
+            215,
+            864,
+            290
         ],
         "next": [
             "save_failed_playresult",

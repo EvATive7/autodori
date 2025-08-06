@@ -27,6 +27,7 @@ if not config_path.exists():
 
 import numpy as np
 from fuzzywuzzy import process as fzwzprocess
+from fuzzywuzzy import fuzz
 from maa.context import Context
 from maa.controller import AdbController
 from maa.custom_action import CustomAction, CustomRecognitionResult
@@ -114,7 +115,7 @@ class SongRecognition(CustomRecognition):
         self, context: Context, argv: CustomRecognition.AnalyzeArg
     ) -> Union[CustomRecognition.AnalyzeResult, Optional[RectType]]:
 
-        roi = [200, 332, 368, 29]
+        roi = [198, 333, 372, 29]
 
         def match(model=None):
             pplname = "_ocrsong_" + "".join(random.choices(string.ascii_lowercase, k=7))
@@ -316,7 +317,17 @@ class SaveSong(CustomAction):
 
 
 def fuzzy_match_song(name):
-    return fzwzprocess.extractOne(name, list(all_song_name_indexes.keys()))
+    match = fzwzprocess.extractOne(
+        name,
+        list(all_song_name_indexes.keys()),
+        scorer=fuzz.ratio,
+        score_cutoff=80
+    )
+    
+    if match is None:
+        return (None, 0)
+    
+    return match
 
 
 def _get_orientation():
