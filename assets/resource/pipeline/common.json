@@ -1,7 +1,7 @@
 {
     "close_app": {
         "action": "StopApp",
-        "package": "com.bilibili.star.bili",
+        "package": "jp.co.craftegg.band",
         "next": "stop"
     },
     "close_button": {
@@ -42,14 +42,15 @@
     },
     "next_button": {
         "recognition": "OCR",
-        "expected": "下一步",
+        "expected": "次へ",
         "action": "Click",
         "timeout": 6000
     },
     "ok_button": {
         "recognition": "TemplateMatch",
         "template": [
-            "common/button/ok/white.png"
+            "common/button/ok/white.png",
+            "common/button/ok/pink.png"
         ],
         "action": "Click"
     },
@@ -119,7 +120,7 @@
     },
     "connect_failed": {
         "recognition": "OCR",
-        "expected": "连接失败",
+        "expected": "通信に失敗しました",
         "next": [
             "retry_button"
         ]

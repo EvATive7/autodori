@@ -19,7 +19,7 @@ class Player:
         if self.type == "mumu":
             if self.display_id == -1:
                 self.display_id = self.player.ipc_get_display_id(
-                    "com.bilibili.star.bili"
+                    "jp.co.craftegg.band"
                 )
             # RGBA -> RGB
             return self.player.ipc_capture_display(self.display_id)[:, :, :3]

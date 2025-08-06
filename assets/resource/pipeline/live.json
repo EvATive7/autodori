@@ -18,7 +18,7 @@
     "select_song": {
         "recognition": "OCR",
         "expected": [
-            "选择乐曲"
+            "楽曲選択"
         ],
         "next": [
             "random_choice_song",
@@ -54,10 +54,12 @@
     },
     "set_difficulty": {},
     "comfirm_song": {
-        "recognition": "OCR",
-        "expected": [
-            "选择乐队",
-            "最终确认"
+        "action": "Click",
+        "target": [
+            972,
+            626,
+            198,
+            45
         ],
         "next": [
             "ensure_liveboost"
@@ -70,14 +72,13 @@
     "ensure_live_mode": {
         "recognition": "OCR",
         "expected": [
-            "自由演出",
-            "挑战演出"
+            "ライブスタート"
         ],
         "roi": [
-            122,
-            19,
-            158,
-            27
+            1031,
+            626,
+            202,
+            43
         ],
         "next": [
             "disable_liveplay"
@@ -100,8 +101,7 @@
         "custom_recognition": "LiveBoostEnoughRecognition",
         "action": "Custom",
         "custom_action": "HandleLiveBoost",
-        "next": "ensure_live_mode",
-        "interrupt": "exit_rehearsal_mode"
+        "next": "ensure_live_mode"
     },
     "switch_liveplay_mode": {
         "action": "Click",
@@ -122,24 +122,48 @@
         "next": "startlive",
         "interrupt": [],
         "roi": [
-            58,
-            580,
-            363,
-            140
+            113,
+            619,
+            123,
+            62
         ]
     },
     "startlive": {
         "action": "Click",
         "recognition": "TemplateMatch",
         "template": "live/button/startlive.png",
+        "roi": [
+            1036,
+            578,
+            196,
+            84
+        ],
+        "next": "tap_to_continue",
+        "interrupt": [
+            "startlive",
+            "confirm_button",
+            "ok_button",
+            "login_expired",
+            "connect_failed"
+        ],
+        "post_delay": 1000
+    },
+    "tap_to_continue": {
+        "action": "Click",
+        "roi": [
+            676,
+            560,
+            186,
+            47
+        ],
         "next": "wait_live_start",
         "interrupt": [
             "startlive",
             "confirm_button",
+            "ok_button",
             "login_expired",
             "connect_failed"
-        ],
-        "post_delay": 2000
+        ]
     },
     "wait_live_start": {
         "recognition": "TemplateMatch",
@@ -215,12 +239,12 @@
     },
     "live_failed": {
         "recognition": "OCR",
-        "expected": "演出失败",
+        "expected": "ライブ失敗",
         "roi": [
-            256,
-            227,
-            155,
-            38
+            263,
+            230,
+            144,
+            33
         ],
         "next": [
             "save_failed_playresult",

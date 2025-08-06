@@ -1,7 +1,7 @@
 {
     "start_app": {
         "action": "StartApp",
-        "package": "com.bilibili.star.bili",
+        "package": "jp.co.craftegg.band",
         "next": [
             "find_startpage_menu",
             "live_home_button"
@@ -14,25 +14,14 @@
     "find_startpage_menu": {
         "recognition": "TemplateMatch",
         "template": "startpage/menu.png",
-        "next": "find_startpage_age_tag",
-        "roi": [
-            1004,
-            495,
-            276,
-            225
-        ],
-        "timeout": 40000
-    },
-    "find_startpage_age_tag": {
-        "recognition": "TemplateMatch",
-        "template": "startpage/age_tag.png",
         "next": "find_startpage_criware",
         "roi": [
-            936,
-            0,
-            344,
-            256
-        ]
+            1191,
+            635,
+            62,
+            59
+        ],
+        "timeout": 40000
     },
     "find_startpage_criware": {
         "recognition": "TemplateMatch",
@@ -84,10 +73,10 @@
         "recognition": "TemplateMatch",
         "template": "live/button/live_home.png",
         "roi": [
-            1042,
-            543,
-            238,
-            177
+            1099,
+            592,
+            158,
+            102
         ],
         "threshold": 0.95
     }

@@ -159,14 +159,14 @@ if os.path.exists(ocr_model_path):
     shutil.rmtree(ocr_model_path)
 # 复制OCR模型
 shutil.copytree(
-    os.path.join(current_dir, "assets", "MaaCommonAssets", "OCR", "ppocr_v4", "zh_cn"),
+    os.path.join(current_dir, "assets", "MaaCommonAssets", "OCR", "ppocr_v5", "zh_cn"),
     ocr_model_path,
     ignore=lambda *_: ["README.md"],
     dirs_exist_ok=True,
 )
 shutil.copytree(
-    os.path.join(current_dir, "assets", "MaaCommonAssets", "OCR", "ppocr_v3", "ja_jp"),
-    os.path.join(ocr_model_path, "ppocr_v3", "ja_jp"),
+    os.path.join(current_dir, "assets", "MaaCommonAssets", "OCR", "ppocr_v5", "zh_cn"),
+    os.path.join(ocr_model_path, "ppocr_v5", "zh_cn"),
     ignore=lambda dirname, _: (
         ["misc", "MaaCommonAssets"] if os.path.basename(dirname) else []
     ),

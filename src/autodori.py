@@ -137,10 +137,10 @@ class SongRecognition(CustomRecognition):
                 song_fuzzyname = ""
             return fuzzy_match_song(song_fuzzyname)
 
-        jpmatch = match("ppocr_v3/ja_jp")
-        commonmatch = match()  # , "ppocr_v4/zh_cn")
+        jpmatch = match("ppocr_v5/zh_cn")
+        commonmatch = match()  # , "ppocr_v5/zh_cn")
         logging.debug(
-            "Match result with ppocr_v3/ja_jp: {}, Match result with default: {}".format(
+            "Match result with ppocr_v5/zh_cn: {}, Match result with default: {}".format(
                 jpmatch, commonmatch
             )
         )
@@ -622,6 +622,7 @@ def _get_override_pipeline():
     # live mode
     livemode_pipeline = {
         "recognition": "OCR",
+        "model": "ppocr_v5/zh_cn",
         "expected": "",
         "roi": [679, 183, 257, 354],
         "action": "Click",
@@ -630,9 +631,9 @@ def _get_override_pipeline():
         "interrupt": ["login_expired", "connect_failed"],
     }
     if LIVEMODE == "freelive":
-        livemode_pipeline["expected"] = "自由演出"
+        livemode_pipeline["expected"] = "フリーライブ"
     elif LIVEMODE == "challengelive":
-        livemode_pipeline["expected"] = "挑战演出"
+        livemode_pipeline["expected"] = "チャレンジライブ"
     all_pipelines["select_live_mode"] = livemode_pipeline
 
     return all_pipelines
