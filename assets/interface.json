@@ -15,16 +15,15 @@
     ],
     "resource": [
         {
-            "name": "官服",
+            "name": "b服",
             "path": [
-                "{PROJECT_DIR}/resource"
+                "{PROJECT_DIR}/assets/resource/base"
             ]
         },
         {
-            "name": "B 服",
+            "name": "日服",
             "path": [
-                "{PROJECT_DIR}/resource",
-                "{PROJECT_DIR}/resource_bilibili"
+                "{PROJECT_DIR}/assets/resource/jp"
             ]
         }
     ],

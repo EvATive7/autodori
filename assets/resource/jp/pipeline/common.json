@@ -1,0 +1,131 @@
+{
+    "close_app": {
+        "action": "StopApp",
+        "package": "jp.co.craftegg.band",
+        "next": "stop"
+    },
+    "close_button": {
+        "recognition": "TemplateMatch",
+        "template": "common/button/close/white.png",
+        "action": "Click"
+    },
+    "confirm_button": {
+        "recognition": "TemplateMatch",
+        "template": [
+            "common/button/confirm/pink.png",
+            "common/button/confirm/white.png"
+        ],
+        "action": "Click"
+    },
+    "reader_menu": {
+        "recognition": "TemplateMatch",
+        "template": "common/reader/menu.png",
+        "action": "Click",
+        "next": "reader_skip"
+    },
+    "reader_skip": {
+        "recognition": "TemplateMatch",
+        "template": "common/reader/skip.png",
+        "action": "Click",
+        "next": "skip_button",
+        "post_delay": 1500
+    },
+    "read_after": {
+        "recognition": "TemplateMatch",
+        "template": "common/reader/readafter.png",
+        "action": "Click"
+    },
+    "skip_button": {
+        "recognition": "TemplateMatch",
+        "template": "common/button/skip/pink.png",
+        "action": "Click"
+    },
+    "next_button": {
+        "recognition": "OCR",
+        "expected": "次へ",
+        "action": "Click",
+        "timeout": 6000
+    },
+    "ok_button": {
+        "recognition": "TemplateMatch",
+        "template": [
+            "common/button/ok/white.png",
+            "common/button/ok/pink.png"
+        ],
+        "action": "Click"
+    },
+    "exit_button": {
+        "recognition": "TemplateMatch",
+        "template": [
+            "common/button/exit/pink.png",
+            "common/button/exit/white.png"
+        ],
+        "action": "Click"
+    },
+    "donot_usenow_button": {
+        "recognition": "OCR",
+        "expected": "暂且不使用",
+        "action": "Click"
+    },
+    "tap_to_next": {
+        "recognition": "OCR",
+        "expected": [
+            "TAPTONEXT",
+            "taptonext",
+            ".*NEXT.*",
+            ".*next.*"
+        ],
+        "action": "Click",
+        "timeout": 6000,
+        "post_delay": 500,
+        "roi": [
+            512,
+            640,
+            234,
+            51
+        ]
+    },
+    "to_tome": {
+        "recognition": "TemplateMatch",
+        "template": "common/button/menu/main.png",
+        "action": "Click",
+        "post_delay": 1000,
+        "next": [
+            "menu_home"
+        ]
+    },
+    "menu_home": {
+        "recognition": "TemplateMatch",
+        "template": "common/button/menu/home.png",
+        "action": "Click",
+        "post_delay": 1500
+    },
+    "backtitle_button": {
+        "recognition": "TemplateMatch",
+        "template": "common/button/backtitle/white.png",
+        "action": "Click"
+    },
+    "retry_button": {
+        "recognition": "TemplateMatch",
+        "template": "common/button/retry/pink.png",
+        "action": "Click"
+    },
+    "login_expired": {
+        "recognition": "OCR",
+        "expected": "登录已失效",
+        "action": "StopTask",
+        "next": [
+            "backtitle_button"
+        ]
+    },
+    "connect_failed": {
+        "recognition": "OCR",
+        "expected": "通信に失敗しました",
+        "next": [
+            "retry_button"
+        ]
+    },
+    "stop": {
+        "action": "StopTask"
+    }
+}

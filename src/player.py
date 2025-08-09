@@ -1,10 +1,12 @@
 import mumuipc
 import ldipc
+from pathlib import Path
 
 
 class Player:
-    def __init__(self, type_: str, path: str, index: int) -> None:
+    def __init__(self, type_: str, path: Path, index: int, package_name: str) -> None:
         self.type = type_
+        self.package_name = package_name
         self.display_id = -1
         if type_ == "mumu":
             self.player = mumuipc.MuMuPlayer(path, index)
@@ -19,10 +21,11 @@ class Player:
         if self.type == "mumu":
             if self.display_id == -1:
                 self.display_id = self.player.ipc_get_display_id(
-                    "com.bilibili.star.bili"
+                    self.package_name
                 )
-            # RGBA -> RGB
-            return self.player.ipc_capture_display(self.display_id)[:, :, :3]
+            if self.display_id != -1:
+                return self.player.ipc_capture_display(self.display_id)[:, :, :3]
+            else:
+                return self.player.capture()
         else:
-            # RGB
             return self.player.capture()
