@@ -1,0 +1,245 @@
+{
+    "live_home_button": {
+        "recognition": "TemplateMatch",
+        "template": "live/button/live_home.png",
+        "action": "Click",
+        "post_delay": 1500,
+        "next": [
+            "select_live_mode",
+            "live_home_button"
+        ],
+        "interrupt": [
+            "next_button",
+            "close_button",
+            "donot_usenow_button"
+        ]
+    },
+    "select_live_mode": {},
+    "select_song": {
+        "recognition": "OCR",
+        "expected": [
+            "选择乐曲"
+        ],
+        "next": [
+            "random_choice_song",
+            "set_difficulty",
+            "select_song",
+            "select_live_mode",
+            "live_home_button"
+        ],
+        "post_delay": 2000
+    },
+    "random_choice_song": {
+        "recognition": "TemplateMatch",
+        "template": "live/button/random_choice_song.png",
+        "action": "Click",
+        "post_delay": 2000,
+        "next": [
+            "set_difficulty",
+            "random_choice_song",
+            "select_song",
+            "select_live_mode",
+            "live_home_button"
+        ]
+    },
+    "get_song_name": {
+        "action": "Custom",
+        "recognition": "Custom",
+        "custom_recognition": "SongRecognition",
+        "custom_action": "SaveSong",
+        "next": "comfirm_song",
+        "interrupt": [
+            "confirm_button"
+        ]
+    },
+    "set_difficulty": {},
+    "comfirm_song": {
+        "recognition": "OCR",
+        "expected": [
+            "选择乐队",
+            "最终确认"
+        ],
+        "next": [
+            "ensure_liveboost"
+        ],
+        "timeout": 3000,
+        "on_error": [
+            "close_app"
+        ]
+    },
+    "ensure_live_mode": {
+        "recognition": "OCR",
+        "expected": [
+            "自由演出",
+            "挑战演出"
+        ],
+        "roi": [
+            122,
+            19,
+            158,
+            27
+        ],
+        "next": [
+            "disable_liveplay"
+        ],
+        "interrupt": [
+            "switch_liveplay_mode"
+        ]
+    },
+    "exit_rehearsal_mode": {
+        "action": "Click",
+        "target": [
+            29,
+            502,
+            51,
+            48
+        ]
+    },
+    "ensure_liveboost": {
+        "recognition": "Custom",
+        "custom_recognition": "LiveBoostEnoughRecognition",
+        "action": "Custom",
+        "custom_action": "HandleLiveBoost",
+        "next": "ensure_live_mode",
+        "interrupt": "exit_rehearsal_mode"
+    },
+    "switch_liveplay_mode": {
+        "action": "Click",
+        "target": [
+            125,
+            631,
+            33,
+            35
+        ]
+    },
+    "disable_liveplay": {
+        "recognition": "TemplateMatch",
+        "template": [
+            "live/button/liveplay_3d.png",
+            "live/button/liveplay_mv.png"
+        ],
+        "inverse": true,
+        "next": "startlive",
+        "interrupt": [],
+        "roi": [
+            58,
+            580,
+            363,
+            140
+        ]
+    },
+    "startlive": {
+        "action": "Click",
+        "recognition": "TemplateMatch",
+        "template": "live/button/startlive.png",
+        "next": "wait_live_start",
+        "interrupt": [
+            "startlive",
+            "confirm_button",
+            "login_expired",
+            "connect_failed"
+        ],
+        "post_delay": 2000
+    },
+    "wait_live_start": {
+        "recognition": "TemplateMatch",
+        "template": "live/button/pause.png",
+        "next": "playsong"
+    },
+    "playsong": {
+        "action": "Custom",
+        "custom_action": "Play",
+        "next": "wait_playresult",
+        "interrupt": [
+            "live_failed",
+            "next_button",
+            "close_button",
+            "ok_button",
+            "confirm_button",
+            "login_expired",
+            "connect_failed"
+        ],
+        "timeout": 50000
+    },
+    "wait_playresult": {
+        "recognition": "TemplateMatch",
+        "template": [
+            "live/scored.png",
+            "live/activity_scored.png"
+        ],
+        "next": "wait_playresult1",
+        "pre_wait_freezes": {
+            "threshold": 0.65,
+            "time": 5000
+        },
+        "interrupt": [
+            "next_button",
+            "close_button",
+            "ok_button",
+            "confirm_button"
+        ],
+        "post_delay": 3000
+    },
+    "wait_playresult1": {
+        "recognition": "TemplateMatch",
+        "template": [
+            "live/scored.png",
+            "live/activity_scored.png"
+        ],
+        "pre_wait_freezes": 2000,
+        "next": "save_succeed_playresult"
+    },
+    "save_succeed_playresult": {
+        "recognition": "Custom",
+        "custom_recognition": "PlayResultRecognition",
+        "action": "Custom",
+        "custom_action": "SavePlayResult",
+        "custom_action_param": {
+            "succeed": true
+        },
+        "next": "live_home_button",
+        "interrupt": [
+            "next_button",
+            "close_button",
+            "ok_button",
+            "confirm_button",
+            "reader_menu",
+            "read_after"
+        ]
+    },
+    "liveagain": {
+        "recognition": "TemplateMatch",
+        "template": "live/button/liveagain.png",
+        "action": "Click",
+        "next": "select_song"
+    },
+    "live_failed": {
+        "recognition": "OCR",
+        "expected": "演出失败",
+        "roi": [
+            256,
+            227,
+            155,
+            38
+        ],
+        "next": [
+            "save_failed_playresult",
+            "exit_button"
+        ],
+        "interrupt": [
+            "login_expired",
+            "connect_failed"
+        ]
+    },
+    "save_failed_playresult": {
+        "action": "Custom",
+        "custom_action": "SavePlayResult",
+        "custom_action_param": {
+            "succeed": false
+        },
+        "next": "live_home_button",
+        "interrupt": [
+            "exit_button"
+        ]
+    }
+}

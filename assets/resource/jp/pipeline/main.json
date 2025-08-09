@@ -1,0 +1,13 @@
+{
+    "main": {
+        "next": [
+            "select_song",
+            "select_live_mode",
+            "live_home_button"
+        ],
+        "interrupt": [
+            "to_tome",
+            "start_app"
+        ]
+    }
+}

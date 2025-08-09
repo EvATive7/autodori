@@ -172,6 +172,27 @@ shutil.copytree(
     ),
     dirs_exist_ok=True,
 )
+
+# --- 修改开始 ---
+# 将 resource/model 的内容复制到 resource/base/model 和 resource/jp/model，然后删除原目录
+model_dest_path = os.path.join(assets_dest_path, "resource", "model")
+base_model_path = os.path.join(assets_dest_path, "resource", "base", "model")
+jp_model_path = os.path.join(assets_dest_path, "resource", "jp", "model")
+
+if os.path.exists(model_dest_path):
+    # 复制到 base/model
+    print(f"Copying models to {base_model_path}")
+    shutil.copytree(model_dest_path, base_model_path, dirs_exist_ok=True)
+
+    # 复制到 jp/model
+    print(f"Copying models to {jp_model_path}")
+    shutil.copytree(model_dest_path, jp_model_path, dirs_exist_ok=True)
+
+    # 删除原始的 model 目录
+    print(f"Removing original model directory {model_dest_path}")
+    shutil.rmtree(model_dest_path)
+# --- 修改结束 ---
+
 temp_dir = download_and_extract_minitouch()
 move_minitouch_to_assets(temp_dir)
 json.dump(

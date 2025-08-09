@@ -1,0 +1,94 @@
+{
+    "start_app": {
+        "action": "StartApp",
+        "package": "com.bilibili.star.bili",
+        "next": [
+            "find_startpage_menu",
+            "live_home_button"
+        ],
+        "interrupt": [
+            "ok_button",
+            "confirm_button"
+        ]
+    },
+    "find_startpage_menu": {
+        "recognition": "TemplateMatch",
+        "template": "startpage/menu.png",
+        "next": "find_startpage_age_tag",
+        "roi": [
+            1004,
+            495,
+            276,
+            225
+        ],
+        "timeout": 40000
+    },
+    "find_startpage_age_tag": {
+        "recognition": "TemplateMatch",
+        "template": "startpage/age_tag.png",
+        "next": "find_startpage_criware",
+        "roi": [
+            936,
+            0,
+            344,
+            256
+        ]
+    },
+    "find_startpage_criware": {
+        "recognition": "TemplateMatch",
+        "template": "startpage/criware.png",
+        "next": "tap_start",
+        "roi": [
+            936,
+            0,
+            344,
+            256
+        ]
+    },
+    "tap_start": {
+        "action": "Click",
+        "target": [
+            457,
+            368,
+            388,
+            284
+        ],
+        "next": "start_task_stop",
+        "interrupt": [
+            "next_button",
+            "tap_to_next",
+            "close_button",
+            "reader_menu",
+            "download",
+            "connect_failed",
+            "safe_random_click"
+        ],
+        "timeout": 300000
+    },
+    "download": {
+        "recognition": "TemplateMatch",
+        "template": "common/button/download.png",
+        "action": "Click"
+    },
+    "safe_random_click": {
+        "action": "Click",
+        "target": [
+            451,
+            576,
+            164,
+            129
+        ],
+        "post_delay": 500
+    },
+    "start_task_stop": {
+        "recognition": "TemplateMatch",
+        "template": "live/button/live_home.png",
+        "roi": [
+            1042,
+            543,
+            238,
+            177
+        ],
+        "threshold": 0.95
+    }
+}

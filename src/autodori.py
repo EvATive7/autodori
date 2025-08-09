@@ -26,6 +26,7 @@ if not config_path.exists():
 
 
 import numpy as np
+import yaml
 from fuzzywuzzy import process as fzwzprocess
 from fuzzywuzzy import fuzz
 from maa.context import Context
@@ -80,6 +81,9 @@ callback_data_lock = threading.Lock()
 cmd_log_list: list[MNTEvATive7LogEventData] = []
 cmd_log_list_lock = threading.Lock()
 current_version = None
+game_package_name: str = None
+# 新增全局变量用于存储选择的资源名称
+chosen_resource_name: Optional[str] = None
 
 
 def reset_callback_data():
@@ -139,7 +143,7 @@ class SongRecognition(CustomRecognition):
             return fuzzy_match_song(song_fuzzyname)
 
         jpmatch = match("ppocr_v5/zh_cn")
-        commonmatch = match()  # , "ppocr_v5/zh_cn")
+        commonmatch = match()
         logging.debug(
             "Match result with ppocr_v5/zh_cn: {}, Match result with default: {}".format(
                 jpmatch, commonmatch
@@ -163,7 +167,6 @@ class LiveBoostEnoughRecognition(CustomRecognition):
     def analyze(
         self, context: Context, argv: CustomRecognition.AnalyzeArg
     ) -> Union[CustomRecognition.AnalyzeResult, Optional[RectType]]:
-        # roi = [970, 29, 39, 21]
         roi = [979, 30, 61, 20]
 
         pipeline = {
@@ -318,26 +321,16 @@ class SaveSong(CustomAction):
 
 def fuzzy_match_song(name):
     match = fzwzprocess.extractOne(
-        name,
-        list(all_song_name_indexes.keys()),
-        scorer=fuzz.ratio,
-        score_cutoff=80
+        name, list(all_song_name_indexes.keys()), scorer=fuzz.ratio, score_cutoff=80
     )
-    
+
     if match is None:
         return (None, 0)
-    
+
     return match
 
 
 def _get_orientation():
-    """
-    0, 1, 2, 3
-    0: 0°
-    1: 90°
-    2: 180°
-    3: 270°
-    """
     try:
         command_list = [
             str(device.adb_path.absolute()),
@@ -456,42 +449,111 @@ def wait_first_note():
 
 
 def init_maa():
-    user_path = "./"
-    resource_path = "assets/resource"
+    # 修改：增加 global 声明
+    global game_package_name, chosen_resource_name
+    try:
+        interface_file = Path("assets/interface.json")
+        if not interface_file.exists():
+            logging.fatal("错误: 当前目录下未找到 interface.json。")
+            sys.exit(1)
 
-    res_job = maaresource.post_bundle(resource_path)
-    res_job.wait()
+        interface_data = json.loads(interface_file.read_text(encoding="utf-8"))
+        resources = interface_data.get("resource", [])
+        if not resources:
+            logging.fatal("错误: interface.json 中未定义任何资源。")
+            sys.exit(1)
+    except Exception as e:
+        logging.fatal(f"读取或解析 interface.json 失败: {e}")
+        sys.exit(1)
+
+    chosen_resource = None
+    if len(resources) == 1:
+        chosen_resource = resources[0]
+        logging.info(f"已自动选择唯一的可用资源: {chosen_resource.get('name', 'Unnamed')}")
+    else:
+        print("请选择要使用的资源:")
+        for i, res in enumerate(resources):
+            print(f"{i}: {res.get('name', 'Unnamed')}")
+
+        try:
+            selected_index_str = input("请输入选项对应的数字: ")
+            selected_index = int(selected_index_str)
+            if 0 <= selected_index < len(resources):
+                chosen_resource = resources[selected_index]
+            else:
+                logging.fatal("无效选择，正在退出。")
+                sys.exit(1)
+        except (ValueError, IndexError):
+            logging.fatal("无效输入，请输入列表中的数字。正在退出。")
+            sys.exit(1)
+
+    # 修改：在选择后，给全局变量赋值
+    chosen_resource_name = chosen_resource.get("name")
+    package_map = {
+        "b服": "com.bilibili.star.bili",
+        "日服": "jp.co.craftegg.band",
+    }
+    game_package_name = package_map.get(chosen_resource_name)
+
+    if not game_package_name:
+        default_pkg = "jp.co.craftegg.band"
+        logging.warning(
+            f"无法为资源 '{chosen_resource_name}' 确定包名。将默认使用 '{default_pkg}'。如果此设置不正确，可能会导致MuMu IPC截图出现问题。"
+        )
+        game_package_name = default_pkg
+
+    logging.info(
+        f"已选择资源: '{chosen_resource_name}'。用于IPC截图的游戏包名已设置为: '{game_package_name}'"
+    )
+
+    resource_paths = chosen_resource.get("path", [])
+    if not resource_paths:
+        logging.fatal(
+            f"错误: 所选资源 '{chosen_resource.get('name', 'Unnamed')}' 未定义路径。"
+        )
+        sys.exit(1)
+
+    project_dir = Path(".").resolve()
+    for res_path_str in resource_paths:
+        resolved_path = res_path_str.replace("{PROJECT_DIR}", str(project_dir))
+        logging.info(f"正在从以下位置加载资源: {resolved_path}")
+        res_job = maaresource.post_bundle(resolved_path)
+        if not res_job.wait().succeeded:
+            logging.fatal(f"加载资源失败: {resolved_path}")
+            sys.exit(1)
+
+    user_path = "./"
     Toolkit.init_option(user_path)
     for i in range(3):
         adb_devices = Toolkit.find_adb_devices()
         if adb_devices:
             break
     if not adb_devices:
-        logging.fatal("No ADB device found.")
+        logging.fatal("未找到ADB设备。")
         sys.exit(1)
 
     global device, maacontroller
     _device: list[AdbDevice] = []
-    for device in adb_devices:
-        extra_names = device.config.get("extras", {}).keys()
+    for device_item in adb_devices:
+        extra_names = device_item.config.get("extras", {}).keys()
         if "mumu" in extra_names or "ld" in extra_names:
-            if (device.name, device.address) not in [
+            if (device_item.name, device_item.address) not in [
                 (d.name, d.address) for d in _device
             ]:
-                _device.append(device)
+                _device.append(device_item)
     filter_str = config.get("device", {}).get("filter", "devices")
     _device = eval(filter_str, {}, {"devices": _device})
 
     if not _device:
-        logging.fatal("No supported devices were found.")
+        logging.fatal("未找到支持的设备。")
         sys.exit(1)
     elif len(_device) == 1:
         device = _device[0]
     elif len(_device) > 1:
-        print("Multiple devices were found:")
-        for i, device in enumerate(_device):
-            print(f"{i}: {device.name}({device.address})")
-        selected = input("Select a device: ")
+        print("找到多个设备:")
+        for i, dev in enumerate(_device):
+            print(f"{i}: {dev.name}({dev.address})")
+        selected = input("请选择一个设备: ")
         device = _device[int(selected)]
     maacontroller = AdbController(
         adb_path=device.adb_path,
@@ -505,14 +567,13 @@ def init_maa():
         if maacontroller.post_connection().wait().succeeded:
             break
 
-    # tasker = Tasker(notification_handler=MyNotificationHandler())
     maatasker.bind(maaresource, maacontroller)
 
     if not maatasker.inited:
-        logging.fatal("Failed to init MAA.")
+        logging.fatal("MAA初始化失败。")
         sys.exit(1)
 
-    logging.info("MAA inited.")
+    logging.info("MAA初始化完成。")
 
 
 def mnt_callback(event: MNTEvent, data: MNTEventData):
@@ -562,7 +623,7 @@ def mnt_callback(event: MNTEvent, data: MNTEventData):
 
 
 def init_player_and_mnt():
-    global current_player, mnt
+    global current_player, mnt, device, game_package_name
 
     extra_config = device.config["extras"]
     if "mumu" in extra_config.keys():
@@ -575,7 +636,7 @@ def init_player_and_mnt():
     path = extra_config["path"]
     index = extra_config["index"]
 
-    current_player = player.Player(type_, Path(path), index)
+    current_player = player.Player(type_, Path(path), index, game_package_name)
     mnt = MNT(
         device.address,
         type_="EvATive7",
@@ -606,9 +667,11 @@ def configure_log():
 
 
 def _get_override_pipeline():
+    # 修改：整个函数被重写以处理不同的服务器
+    global chosen_resource_name
     all_pipelines = {}
 
-    # set_difficulty
+    # 1. 设置难度的 Pipeline (保持不变)
     difficulty: str = DIFFICULTY
     roi = {
         "easy": [659, 495, 107, 97],
@@ -630,22 +693,60 @@ def _get_override_pipeline():
         "interrupt": ["random_choice_song"],
     }
 
-    # live mode
-    livemode_pipeline = {
-        "recognition": "OCR",
-        "model": "ppocr_v5/zh_cn",
-        "expected": "",
-        "roi": [679, 183, 257, 354],
-        "action": "Click",
-        "post_delay": 1000,
-        "next": ["select_song", "select_live_mode", "live_home_button"],
-        "interrupt": ["login_expired", "connect_failed"],
-    }
-    if LIVEMODE == "freelive":
-        livemode_pipeline["expected"] = "フリーライブ"
-    elif LIVEMODE == "challengelive":
-        livemode_pipeline["expected"] = "チャレンジライブ"
-    all_pipelines["select_live_mode"] = livemode_pipeline
+    # 2. 根据服务器选择来构建 livemode 的 Pipeline
+    logging.info(f"Building pipeline for server: {chosen_resource_name}")
+    if chosen_resource_name == "日服":
+        livemode_pipeline = {
+            "recognition": "OCR",
+            "model": "ppocr_v5/zh_cn",
+            "expected": "",
+            "roi": [679, 183, 257, 354],
+            "action": "Click",
+            "post_delay": 1000,
+            "next": ["select_song", "select_live_mode", "live_home_button"],
+            "interrupt": ["login_expired", "connect_failed"],
+        }
+        if LIVEMODE == "freelive":
+            livemode_pipeline["expected"] = "フリーライブ"
+        elif LIVEMODE == "challengelive":
+            livemode_pipeline["expected"] = "チャレンジライブ"
+        all_pipelines["select_live_mode"] = livemode_pipeline
+
+    elif chosen_resource_name == "b服":
+        livemode_pipeline = {
+            "recognition": "OCR",
+            "expected": "",
+            "roi": [679, 183, 257, 354],
+            "action": "Click",
+            "post_delay": 1000,
+            "next": ["select_song", "select_live_mode", "live_home_button"],
+            "interrupt": ["login_expired", "connect_failed"],
+        }
+        if LIVEMODE == "freelive":
+            livemode_pipeline["expected"] = "自由演出"
+        elif LIVEMODE == "challengelive":
+            livemode_pipeline["expected"] = "挑战演出"
+        all_pipelines["select_live_mode"] = livemode_pipeline
+    else:
+        # 如果没有匹配到，则使用一个默认值（例如日服）并打印警告
+        logging.warning(
+            f"Unknown server '{chosen_resource_name}', falling back to default JP server settings."
+        )
+        livemode_pipeline = {
+            "recognition": "OCR",
+            "model": "ppocr_v5/zh_cn",
+            "expected": "",
+            "roi": [679, 183, 257, 354],
+            "action": "Click",
+            "post_delay": 1000,
+            "next": ["select_song", "select_live_mode", "live_home_button"],
+            "interrupt": ["login_expired", "connect_failed"],
+        }
+        if LIVEMODE == "freelive":
+            livemode_pipeline["expected"] = "フリーライブ"
+        elif LIVEMODE == "challengelive":
+            livemode_pipeline["expected"] = "チャレンジライブ"
+        all_pipelines["select_live_mode"] = livemode_pipeline
 
     return all_pipelines
 
@@ -739,6 +840,7 @@ def main():
     DIFFICULTY = args.difficulty
     LIVEMODE = args.livemode
     MIN_LIVEBOOST = args.liveboost
+
     init_maa()
     init_player_and_mnt()
 
