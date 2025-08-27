@@ -18,7 +18,7 @@ class Player:
         return self.player.resolution
 
     def ipc_capture_display(self):
-        if self.type == "mumu":
+        if self.type.startswith("mumu"):
             if self.display_id == -1:
                 self.display_id = self.player.ipc_get_display_id(
                     "com.bilibili.star.bili"
