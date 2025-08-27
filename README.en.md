@@ -12,11 +12,11 @@ A BanG Dream! helper
 ## ✨ Features
 
 - [x] Auto-launch game and auto-play songs
-- [x] Compatible with Windows, Mumu, and LDPlayer emulators
+- [x] Compatible with Windows, Mumu, Mumu V5, and LDPlayer emulators
 - [x] Ultra-low performance overhead, low latency, and high accuracy
 - [x] Usable with the Chinese server
 - [ ] Auto-collect rewards and auto daily gacha x3
-- [ ] Compatibility with Linux, macOS, and other emulators (awaiting other emulators to implement IPCAPI), Mumu V5
+- [ ] Compatibility with Linux, macOS, and other emulators (awaiting other emulators to implement IPCAPI)
 - [ ] Further accuracy and performance optimizations
 - [ ] Support for Japanese and Global servers
 - [x] Proof is in the pudding! 👇
