@@ -2,7 +2,7 @@ requests
 diskcache
 fuzzywuzzy
 minitouch.py>=1.1.2
-mumuipc.py
+mumuipc.py>=0.0.2
 ld-ipc.py
 maafw==4.4.0
 numpy

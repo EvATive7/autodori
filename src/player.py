@@ -6,9 +6,11 @@ class Player:
     def __init__(self, type_: str, path: str, index: int) -> None:
         self.type = type_
         self.display_id = -1
-        if type_ == "mumu":
-            self.player = mumuipc.MuMuPlayer(path, index)
-        else:
+        if type_ == "mumuv4":
+            self.player = mumuipc.MuMuPlayer(path, index, "v4")
+        elif type_ == "mumuv5":
+            self.player = mumuipc.MuMuPlayer(path, index, "v5")
+        elif type_ == "ld":
             self.player = ldipc.LDPlayer(path, index)
 
     @property

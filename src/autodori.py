@@ -557,6 +557,10 @@ def init_player_and_mnt():
     if "mumu" in extra_config.keys():
         extra_config = extra_config["mumu"]
         type_ = "mumu"
+        if device.name == "MuMuPlayer12":
+            type_ += "v4"
+        if device.name == "MuMuPlayer12 v5":
+            type_ += "v5"
     elif "ld" in extra_config.keys():
         extra_config = extra_config["ld"]
         type_ = "ld"
