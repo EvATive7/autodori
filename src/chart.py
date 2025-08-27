@@ -134,10 +134,8 @@ class Chart:
         def get_finger(from_time, to_time) -> int:
             for finger in available_fingers:
                 if any(
-                    [
-                        occupied_from <= from_time <= occupied_to
-                        for occupied_from, occupied_to in finger["occupied_time"]
-                    ]
+                    not (to_time <= occupied_from or from_time >= occupied_to)
+                    for occupied_from, occupied_to in finger["occupied_time"]
                 ):
                     continue
                 else:
