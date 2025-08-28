@@ -31,6 +31,9 @@
 
 ## 🛠 使用方法
 
+> [!NOTE]
+> 讨论和开发QQ群：1044289381
+
 > [!IMPORTANT]  
 > 在使用此脚本之前，请确保前置条件：
 >
@@ -42,20 +45,21 @@
 > 1. 为了更好的体验，可以在游戏“演出效果·音量设定”中，启用“FAST/SLOW表示”和“Perfect状态显示”
 > 1. 启动模拟器且确保其adb功能正常
 
+### 适用于普通用户
+
 1. 从[release](https://github.com/EvATive7/autodori/releases)下载最新版  
 2. 解压，并运行`autodori.exe`
 3. 使用命令行`autodori.exe -h`可以查看更多选项
 4. 你可以修改 `data/config.yml` 来更改配置：[配置文件示例](./docs/config_eg/config.yml)
 
-> [!NOTE]  
-> 如果你懂代码 / 需要自行调参或修改代码以获得更好的效果 / 凹分 / 需要测试、开发，请从源码运行：  
->
-> 1. `git clone --recursive https://github.com/EvATive7/autodori`  
-> 2. `cd autodori`  
-> 3. `python -m venv .venv`  
-> 4. `.venv\Scripts\activate`  
-> 5. `pip install -r requirements.txt`
-> 6. 执行`python build.py`（`build.py`会自动整理和下载必要的依赖项）
+### 如果你需要自行调参或修改代码来凹分 / 需要测试、开发，请从源码运行  
+
+ 1. `git clone --recursive https://github.com/EvATive7/autodori`  
+ 2. `cd autodori`  
+ 3. `python -m venv .venv`  
+ 4. `.venv\Scripts\activate`  
+ 5. `pip install -r requirements.txt`
+ 6. 执行`python build.py`（`build.py`会自动整理和下载必要的依赖项）
 
 ## ⚠️ 注意
 

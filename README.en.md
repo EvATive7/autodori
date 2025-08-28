@@ -30,33 +30,37 @@ A BanG Dream! helper
 ![ ](./docs/achievements/SENSENFUKOKU.png)  
 *EX SENSENFUKOKU AP*
 
-## 🛠 How to Use
+## 🛠 Usage
+
+> [!NOTE]
+> Discussion & Development QQ Group: 1044289381
 
 > [!IMPORTANT]  
-> Before using this script, make sure the following prerequisites are met:
+> Before using this script, please ensure the prerequisites:
 >
-> 1. Ensure your device and emulator have sufficient performance
-> 1. Set the emulator resolution to a 16:9 ratio, preferably (1600, 900) or (1280, 720)
-> 1. Set the song list filter to “Normal” and it's recommended to clear any song filters
-> 1. In the game’s “Performance Settings,” set the scroll speed to 8.0
-> 1. In “Performance Effects & Volume Settings,” disable “3D Cut-in Mode” and set “Motion Mode” to “Lightweight”
-> 1. For better experience, enable “FAST/SLOW Display” and “Perfect Status Display” in “Performance Effects & Volume Settings”
-> 1. Start the simulator and ensure its adb functions correctly
+> 1. Make sure your device and emulator have sufficient performance
+> 1. Set the emulator resolution to a 16:9 value, recommended (1600, 900) or (1280, 720)
+> 1. Song list should be “Normal”, it is recommended to clear song filters
+> 1. In the game "Performance Settings", adjust the note speed to 8.0
+> 1. In the game "Performance Effects · Volume Settings", disable "3D Cut-in Mode", and set "Action Mode" to "Light Mode"
+> 1. For a better experience, you may enable "FAST/SLOW Display" and "Perfect Status Display" in "Performance Effects · Volume Settings"
+> 1. Start the emulator and ensure adb functionality works properly
 
-1. Download the latest release from [release](https://github.com/EvATive7/autodori/releases)  
-2. Extract the archive and run `autodori.exe`
-3. Use `autodori.exe -h` in the command line to see more options
-4. You can edit `data/config.yml` to change configurations: [Config Example](./docs/config_eg/config.yml)
+### For Regular Users
 
-> [!NOTE]  
-> If you understand code / need to tweak parameters or modify the code for better results / score optimization / testing or development, run from source:
->
-> 1. `git clone --recursive https://github.com/EvATive7/autodori`  
-> 2. `cd autodori`  
-> 3. `python -m venv .venv`  
-> 4. `.venv\Scripts\activate`  
-> 5. `pip install -r requirements.txt`
-> 6. Run `python build.py` (`build.py` will automatically organize and download necessary dependencies)
+1. Download the latest version from [release](https://github.com/EvATive7/autodori/releases)  
+2. Extract, then run `autodori.exe`
+3. Run `autodori.exe -h` in command line to see more options
+4. You can edit `data/config.yml` to change settings: [Config Example](./docs/config_eg/config.yml)
+
+### If you need to fine-tune parameters, modify code for higher score / testing, or development, run from source  
+
+ 1. `git clone --recursive https://github.com/EvATive7/autodori`  
+ 2. `cd autodori`  
+ 3. `python -m venv .venv`  
+ 4. `.venv\Scripts\activate`  
+ 5. `pip install -r requirements.txt`
+ 6. Run `python build.py` (`build.py` will automatically organize and download necessary dependencies)
 
 ## ⚠️ Notes
 
