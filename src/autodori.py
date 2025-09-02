@@ -12,8 +12,20 @@ import time
 from pathlib import Path
 from typing import Optional, Union
 
-import numpy as np
 import requests
+
+data_path = Path("data")
+data_path.mkdir(exist_ok=True)
+cache_path = Path("cache")
+cache_path.mkdir(exist_ok=True)
+config_path = Path("data/config.yml")
+Path("debug").mkdir(exist_ok=True)
+if not config_path.exists():
+    config_path.touch()
+    config_path.write_text("{}", encoding="utf-8")
+
+
+import numpy as np
 from fuzzywuzzy import process as fzwzprocess
 from maa.context import Context
 from maa.controller import AdbController
@@ -44,16 +56,6 @@ PHOTOGATE_LATENCY = 30
 DEFAULT_MOVE_SLICE_SIZE = 10
 MAX_FAILED_TIMES = 10
 CMD_SLICE_SIZE = 100
-
-data_path = Path("data")
-data_path.mkdir(exist_ok=True)
-cache_path = Path("cache")
-cache_path.mkdir(exist_ok=True)
-config_path = Path("data/config.yml")
-Path("debug").mkdir(exist_ok=True)
-if not config_path.exists():
-    config_path.touch()
-    config_path.write_text("{}", encoding="utf-8")
 
 config = yaml.safe_load(config_path.read_text(encoding="utf-8"))
 maaresource = Resource()
