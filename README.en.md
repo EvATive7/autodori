@@ -71,7 +71,7 @@ A BanG Dream! helper
 
 This project is intended solely as an assistant to help players enjoy the game and progression more easily. Using this project to disrupt fair play is strictly prohibited. Please respect the BanG Dream game environment and follow game rules.
 
-Be aware that this project cannot be used for leaderboard boosting. Users attempting to boost scores are subject to secondary checks. Running on emulators or using unconventional input methods are high-risk factors; using this project for leaderboard purposes almost certainly triggers bans.
+Be aware that this project cannot be used for leaderboard boosting. Users attempting to boost scores are subject to secondary checks by BanG Dream. Running on emulators or using unconventional input methods are high-risk factors; using this project for leaderboard purposes almost certainly triggers bans.
 
 This project is open-source and free, and commercial use or distribution by individuals or organizations is prohibited. If you find commercial misuse, please report it on relevant platforms and this repository.
 
