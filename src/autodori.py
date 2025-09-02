@@ -76,8 +76,6 @@ current_chart: Chart = None
 play_failed_times: int = 0
 callback_data: dict = {}
 callback_data_lock = threading.Lock()
-cmd_log_list: list[MNTEvATive7LogEventData] = []
-cmd_log_list_lock = threading.Lock()
 current_version = None
 
 
@@ -364,7 +362,6 @@ def save_song(name):
 
 def play_song():
     logging.info("Start play")
-    cmd_log_list.clear()
     reset_callback_data()
 
     def _get_wait_time():
@@ -512,8 +509,6 @@ def mnt_callback(event: MNTEvent, data: MNTEventData):
         cmd = data.cmd
         cost = data.cost
 
-        with cmd_log_list_lock:
-            cmd_log_list.append(data)
         cmd_type = cmd.split(" ")[0]
 
         callback_data_lock.acquire()
