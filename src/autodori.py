@@ -1,7 +1,7 @@
-import argparse
 import datetime
 import json
 import logging
+import os
 import random
 import re
 import string
@@ -12,29 +12,20 @@ import time
 from pathlib import Path
 from typing import Optional, Union
 
-import requests
-
 data_path = Path("data")
 data_path.mkdir(exist_ok=True)
 cache_path = Path("cache")
 cache_path.mkdir(exist_ok=True)
-config_path = Path("data/config.yml")
 Path("debug").mkdir(exist_ok=True)
-if not config_path.exists():
-    config_path.touch()
-    config_path.write_text("{}", encoding="utf-8")
 
 
 import numpy as np
 from fuzzywuzzy import process as fzwzprocess
 from maa.context import Context
-from maa.controller import AdbController
 from maa.custom_action import CustomAction, CustomRecognitionResult
 from maa.custom_recognition import CustomRecognition
 from maa.define import RectType
-from maa.resource import Resource
-from maa.tasker import Tasker
-from maa.toolkit import AdbDevice, Toolkit
+from maa.agent.agent_server import AgentServer
 from minitouchpy import (
     MNT,
     MNTEvATive7LogEventData,
@@ -48,23 +39,17 @@ from api import BestdoriAPI
 from chart import Chart, PlayRecord
 from util import *
 
-MIN_LIVEBOOST = 1
-LIVEMODE = "freelive"
-DIFFICULTY = "hard"
 OFFSET = {"up": 0, "down": 0, "move": 0, "wait": 0.0, "interval": 0.0}
 PHOTOGATE_LATENCY = 30
 DEFAULT_MOVE_SLICE_SIZE = 10
 MAX_FAILED_TIMES = 10
 CMD_SLICE_SIZE = 100
 
-config = yaml.safe_load(config_path.read_text(encoding="utf-8"))
-maaresource = Resource()
-maatasker = Tasker()
-maacontroller: AdbController = None
-device: AdbDevice = None
 current_player: player.Player = None
 current_orientation: int = 0
 mnt: MNT = None
+adb_path: Path | None = None
+device_address: str | None = None
 all_songs: dict = BestdoriAPI.get_song_list()
 all_song_name_indexes: dict[str, str] = {
     list(filter(lambda title: title is not None, sinfo["musicTitle"]))[0]: sid
@@ -76,7 +61,7 @@ current_chart: Chart = None
 play_failed_times: int = 0
 callback_data: dict = {}
 callback_data_lock = threading.Lock()
-current_version = None
+current_difficulty = "hard"
 
 
 def reset_callback_data():
@@ -106,7 +91,7 @@ def check_song_available(name, id_, difficulty):
     return True
 
 
-@maaresource.custom_recognition("SongRecognition")
+@AgentServer.custom_recognition("SongRecognition")
 class SongRecognition(CustomRecognition):
     def analyze(
         self, context: Context, argv: CustomRecognition.AnalyzeArg
@@ -147,15 +132,19 @@ class SongRecognition(CustomRecognition):
             return CustomRecognition.AnalyzeResult(None, "")
         result_music_name = result[0][0]
 
+        params = json.loads(argv.custom_recognition_param or "{}")
+        global current_difficulty
+        current_difficulty = params.get("difficulty", "hard")
+
         if not check_song_available(
-            result_music_name, all_song_name_indexes[result_music_name], DIFFICULTY
+            result_music_name, all_song_name_indexes[result_music_name], current_difficulty
         ):
             return CustomRecognition.AnalyzeResult(None, "")
 
         return CustomRecognition.AnalyzeResult(roi, result_music_name)
 
 
-@maaresource.custom_recognition("LiveBoostEnoughRecognition")
+@AgentServer.custom_recognition("LiveBoostEnoughRecognition")
 class LiveBoostEnoughRecognition(CustomRecognition):
     def analyze(
         self, context: Context, argv: CustomRecognition.AnalyzeArg
@@ -192,18 +181,20 @@ class LiveBoostEnoughRecognition(CustomRecognition):
         return CustomRecognition.AnalyzeResult(roi, str(live_boost))
 
 
-@maaresource.custom_action("HandleLiveBoost")
+@AgentServer.custom_action("HandleLiveBoost")
 class HandleLiveBoost(CustomAction):
     def run(self, context: Context, argv: CustomAction.RunArg):
         liveboost = int(argv.reco_detail.best_result.detail)
-        if liveboost < MIN_LIVEBOOST:
+        params = json.loads(argv.custom_action_param or "{}")
+        minimum = int(params.get("minimum", 1))
+        if liveboost < minimum:
             logging.debug("Live boost not enough, ready to exit")
             context.run_action("close_app")
             context.run_action("stop")
         return CustomAction.RunResult(True)
 
 
-@maaresource.custom_recognition("PlayResultRecognition")
+@AgentServer.custom_recognition("PlayResultRecognition")
 class PlayResultRecognition(CustomRecognition):
     def analyze(
         self, context: Context, argv: CustomRecognition.AnalyzeArg
@@ -263,7 +254,7 @@ class PlayResultRecognition(CustomRecognition):
         return CustomRecognition.AnalyzeResult([0, 0, 0, 0], json.dumps(result))
 
 
-@maaresource.custom_action("SavePlayResult")
+@AgentServer.custom_action("SavePlayResult")
 class SavePlayResult(CustomAction):
     def run(self, context: Context, argv: CustomAction.RunArg):
         try:
@@ -282,7 +273,7 @@ class SavePlayResult(CustomAction):
                 result=playresult,
                 succeed=succeed,
                 chart_id=current_song_id,
-                difficulty=DIFFICULTY,
+                difficulty=current_difficulty,
             )
             if play_failed_times >= MAX_FAILED_TIMES:
                 logging.error("Failed attempts exceed max failed times")
@@ -294,10 +285,12 @@ class SavePlayResult(CustomAction):
             return CustomAction.RunResult(False)
 
 
-@maaresource.custom_action("Play")
+@AgentServer.custom_action("Play")
 class Play(CustomAction):
     def run(self, context: Context, argv: CustomAction.RunArg):
         try:
+            if mnt is None:
+                init_player_and_mnt()
             play_song()
             return CustomAction.RunResult(True)
         except Exception as e:
@@ -305,7 +298,7 @@ class Play(CustomAction):
             return CustomAction.RunResult(False)
 
 
-@maaresource.custom_action("SaveSong")
+@AgentServer.custom_action("SaveSong")
 class SaveSong(CustomAction):
     def run(self, context: Context, argv: CustomAction.RunArg):
         name: CustomRecognitionResult = argv.reco_detail.best_result.detail
@@ -327,9 +320,9 @@ def _get_orientation():
     """
     try:
         command_list = [
-            str(device.adb_path.absolute()),
+            str(adb_path),
             "-s",
-            device.address,
+            device_address,
             "shell",
             "dumpsys input|grep SurfaceOrientation",
         ]
@@ -351,7 +344,7 @@ def save_song(name):
     global current_song_name, current_song_id, current_chart, current_orientation
     current_song_name = name
     current_song_id = all_song_name_indexes[current_song_name]
-    current_chart = Chart((current_song_id, DIFFICULTY), current_song_name)
+    current_chart = Chart((current_song_id, current_difficulty), current_song_name)
     current_chart.notes_to_actions(current_player.resolution, DEFAULT_MOVE_SLICE_SIZE)
     current_orientation = _get_orientation()
     current_chart.actions_to_MNTcmd(
@@ -441,66 +434,6 @@ def wait_first_note():
             logging.error(f"Failed to get screen: {e}")
 
 
-def init_maa():
-    user_path = "./"
-    resource_path = "assets/resource"
-
-    res_job = maaresource.post_bundle(resource_path)
-    res_job.wait()
-    Toolkit.init_option(user_path)
-    for i in range(3):
-        adb_devices = Toolkit.find_adb_devices()
-        if adb_devices:
-            break
-    if not adb_devices:
-        logging.fatal("No ADB device found.")
-        sys.exit(1)
-
-    global device, maacontroller
-    _device: list[AdbDevice] = []
-    for device in adb_devices:
-        extra_names = device.config.get("extras", {}).keys()
-        if "mumu" in extra_names or "ld" in extra_names:
-            if (device.name, device.address) not in [
-                (d.name, d.address) for d in _device
-            ]:
-                _device.append(device)
-    filter_str = config.get("device", {}).get("filter", "devices")
-    _device = eval(filter_str, {}, {"devices": _device})
-
-    if not _device:
-        logging.fatal("No supported devices were found.")
-        sys.exit(1)
-    elif len(_device) == 1:
-        device = _device[0]
-    elif len(_device) > 1:
-        print("Multiple devices were found:")
-        for i, device in enumerate(_device):
-            print(f"{i}: {device.name}({device.address})")
-        selected = input("Select a device: ")
-        device = _device[int(selected)]
-    maacontroller = AdbController(
-        adb_path=device.adb_path,
-        address=device.address,
-        screencap_methods=device.screencap_methods,
-        input_methods=device.input_methods,
-        config=device.config,
-    )
-
-    for i in range(3):
-        if maacontroller.post_connection().wait().succeeded:
-            break
-
-    # tasker = Tasker(notification_handler=MyNotificationHandler())
-    maatasker.bind(maaresource, maacontroller)
-
-    if not maatasker.inited:
-        logging.fatal("Failed to init MAA.")
-        sys.exit(1)
-
-    logging.info("MAA inited.")
-
-
 def mnt_callback(event: MNTEvent, data: MNTEventData):
     global callback_data
     if event == MNTEvent.EVATIVE7_LOG:
@@ -546,31 +479,30 @@ def mnt_callback(event: MNTEvent, data: MNTEventData):
 
 
 def init_player_and_mnt():
-    global current_player, mnt
+    """Initialize minitouch from the device selected by the GUI.
 
-    extra_config = device.config["extras"]
-    if "mumu" in extra_config.keys():
-        extra_config = extra_config["mumu"]
-        type_ = "mumu"
-        if device.name == "MuMuPlayer12":
-            type_ += "v4"
-        if device.name == "MuMuPlayer12 v5":
-            type_ += "v5"
-    elif "ld" in extra_config.keys():
-        extra_config = extra_config["ld"]
-        type_ = "ld"
+    AUTODORI_DEVICE must contain the selected ADB endpoint and the emulator
+    metadata required by the player IPC implementation.
+    """
+    global adb_path, current_player, device_address, mnt
 
-    path = extra_config["path"]
-    index = extra_config["index"]
+    raw_device = os.environ.get("AUTODORI_DEVICE")
+    if not raw_device:
+        raise RuntimeError("AUTODORI_DEVICE was not provided by the GUI")
 
-    current_player = player.Player(type_, Path(path), index)
+    device = json.loads(raw_device)
+    adb_path = Path(device["adb_path"])
+    device_address = device["address"]
+    current_player = player.Player(
+        device["player"]["type"], Path(device["player"]["path"]), device["player"]["index"]
+    )
     mnt = MNT(
-        device.address,
+        device_address,
         type_="EvATive7",
         communicate_type=MNTServerCommunicateType.STDIO,
         mnt_asset_path=Path("./assets/minitouch_EvATive7"),
         callback=mnt_callback,
-        adb_executor=str(device.adb_path.absolute()),
+        adb_executor=str(adb_path.absolute()),
     )
 
     logging.info("Mumu and MNT inited.")
@@ -593,147 +525,20 @@ def configure_log():
     )
 
 
-def _get_override_pipeline():
-    all_pipelines = {}
-
-    # set_difficulty
-    difficulty: str = DIFFICULTY
-    roi = {
-        "easy": [659, 495, 107, 97],
-        "normal": [768, 494, 107, 97],
-        "hard": [886, 494, 105, 97],
-        "expert": [996, 493, 107, 97],
-        "special": [1086, 449, 192, 184],
-    }[difficulty]
-    all_pipelines["set_difficulty"] = {
-        "action": "Click",
-        "recognition": "TemplateMatch",
-        "template": [
-            f"live/difficulty/{difficulty}_active.png",
-            f"live/difficulty/{difficulty}_inactive.png",
-        ],
-        "next": "get_song_name",
-        "target": roi,
-        "timeout": 5000,
-        "interrupt": ["random_choice_song"],
-    }
-
-    # live mode
-    livemode_pipeline = {
-        "recognition": "OCR",
-        "expected": "",
-        "roi": [679, 183, 257, 354],
-        "action": "Click",
-        "post_delay": 1000,
-        "next": ["select_song", "select_live_mode", "live_home_button"],
-        "interrupt": ["login_expired", "connect_failed"],
-    }
-    if LIVEMODE == "freelive":
-        livemode_pipeline["expected"] = "自由演出"
-    elif LIVEMODE == "challengelive":
-        livemode_pipeline["expected"] = "挑战演出"
-    all_pipelines["select_live_mode"] = livemode_pipeline
-
-    return all_pipelines
-
-
-def get_current_version():
-    global current_version
-    try:
-        metadata_text = Path("assets/build_metadata.json").read_text(encoding="utf-8")
-        metadata = json.loads(metadata_text)
-        current_version = metadata["version"]
-    except Exception:
-        logging.debug("Failed to get current version")
-
-
-def check_update():
-    logging.debug("Checking for updates...")
-    try:
-        version = requests.get(
-            "https://api.github.com/repos/EvATive7/autodori/releases/latest"
-        ).json()["tag_name"]
-        logging.debug(f"Current version: {current_version}")
-        logging.debug(f"Newest version: {version}")
-        if compare_semver(version, current_version) == 1:
-            ORANGE = "\033[38;5;208m"
-            BOLD = "\033[1m"
-            RESET = "\033[0m"
-
-            print(
-                f"{ORANGE}{BOLD}有更新可用：{version}，在 https://github.com/EvATive7/autodori/releases 下载最新版本{RESET}"
-            )
-            print(
-                f"{ORANGE}{BOLD}An update is available: {version}, download the latest version at https://github.com/EvAtive7/autodori/releases{RESET}"
-            )
-            time.sleep(5)
-
-    except Exception as e:
-        logging.error("failed to check for updates: {}".format(e))
-
-
 def main():
     configure_log()
+    if len(sys.argv) != 2:
+        raise SystemExit("Usage: autodori-agent <socket_id>")
 
-    parser = argparse.ArgumentParser(
-        description="AutoDori script with different modes."
-    )
-    parser.add_argument(
-        "--mode",
-        type=str,
-        choices=["main"],
-        help="Specify the mode to run",
-        default="main",
-    )
-    parser.add_argument(
-        "--difficulty",
-        type=str,
-        choices=["easy", "normal", "hard", "expert", "special"],
-        help="Specify the difficulty for main mode",
-        default="hard",
-    )
-    parser.add_argument(
-        "--livemode",
-        type=str,
-        choices=["freelive", "challengelive"],
-        help="Specify the live mode to run",
-        default="freelive",
-    )
-    parser.add_argument(
-        "--liveboost",
-        type=int,
-        default=1,
-        help="Specify the min liveboost for main mode. If current liveboost is lower than this value, the script will exit.",
-    )
-    parser.add_argument(
-        "--skip-version-check",
-        action="store_true",
-        help="Specify if skip version check",
-    )
-    args = parser.parse_args()
+    if not AgentServer.start_up(sys.argv[1]):
+        raise SystemExit("Failed to start the Agent Server")
 
-    if args.mode == "main":
-        entry = "main"
-    else:
-        sys.exit(1)
-
-    if not args.skip_version_check:
-        get_current_version()
-        if current_version != None:
-            check_update()
-
-    global DIFFICULTY, MIN_LIVEBOOST, LIVEMODE
-    DIFFICULTY = args.difficulty
-    LIVEMODE = args.livemode
-    MIN_LIVEBOOST = args.liveboost
-    init_maa()
-    init_player_and_mnt()
-
-    maatasker.post_task(entry, _get_override_pipeline()).wait().get()
-
-    mnt.stop()
-    logging.debug("Ready to exit")
-    sys.exit()
+    try:
+        AgentServer.join()
+    finally:
+        if mnt is not None:
+            mnt.stop()
+        AgentServer.shut_down()
 
 
 if __name__ == "__main__":

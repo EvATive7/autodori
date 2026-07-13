@@ -4,6 +4,10 @@
         "package": "com.bilibili.star.bili",
         "next": "stop"
     },
+    "CloseGame": {
+        "action": "StopApp",
+        "package": "com.bilibili.star.bili"
+    },
     "close_button": {
         "recognition": "TemplateMatch",
         "template": "common/button/close/white.png",

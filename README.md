@@ -50,7 +50,6 @@
 1. 从[release](https://github.com/EvATive7/autodori/releases)下载最新版  
 2. 解压，并运行`autodori.exe`
 3. 使用命令行`autodori.exe -h`可以查看更多选项
-4. 你可以修改 `data/config.yml` 来更改配置：[配置文件示例](./docs/config_eg/config.yml)
 
 ### 如果你需要自行调参或修改代码来凹分 / 需要测试、开发，请从源码运行  
 

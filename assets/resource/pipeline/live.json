@@ -1,4 +1,14 @@
 {
+    "AutoLive": {
+        "next": [
+            "select_song",
+            "select_live_mode",
+            "live_home_button"
+        ],
+        "interrupt": [
+            "to_tome"
+        ]
+    },
     "live_home_button": {
         "recognition": "TemplateMatch",
         "template": "live/button/live_home.png",
@@ -14,7 +24,15 @@
             "donot_usenow_button"
         ]
     },
-    "select_live_mode": {},
+    "select_live_mode": {
+        "recognition": "OCR",
+        "expected": "自由演出",
+        "roi": [679, 183, 257, 354],
+        "action": "Click",
+        "post_delay": 1000,
+        "next": ["select_song", "select_live_mode", "live_home_button"],
+        "interrupt": ["login_expired", "connect_failed"]
+    },
     "select_song": {
         "recognition": "OCR",
         "expected": [
@@ -46,13 +64,27 @@
         "action": "Custom",
         "recognition": "Custom",
         "custom_recognition": "SongRecognition",
+        "custom_recognition_param": {
+            "difficulty": "hard"
+        },
         "custom_action": "SaveSong",
         "next": "comfirm_song",
         "interrupt": [
             "confirm_button"
         ]
     },
-    "set_difficulty": {},
+    "set_difficulty": {
+        "action": "Click",
+        "recognition": "TemplateMatch",
+        "template": [
+            "live/difficulty/hard_active.png",
+            "live/difficulty/hard_inactive.png"
+        ],
+        "next": "get_song_name",
+        "target": [886, 494, 105, 97],
+        "timeout": 5000,
+        "interrupt": ["random_choice_song"]
+    },
     "comfirm_song": {
         "recognition": "OCR",
         "expected": [
@@ -100,6 +132,9 @@
         "custom_recognition": "LiveBoostEnoughRecognition",
         "action": "Custom",
         "custom_action": "HandleLiveBoost",
+        "custom_action_param": {
+            "minimum": 1
+        },
         "next": "ensure_live_mode",
         "interrupt": "exit_rehearsal_mode"
     },

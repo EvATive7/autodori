@@ -1,54 +1,38 @@
 {
-    "controller": [
-        {
-            "name": "安卓端",
-            "type": "Adb"
-        },
-        {
-            "name": "桌面端",
-            "type": "Win32",
-            "win32": {
-                "class_regex": ".*",
-                "window_regex": "Visual Studio"
-            }
-        }
-    ],
-    "resource": [
-        {
-            "name": "官服",
-            "path": [
-                "{PROJECT_DIR}/resource"
-            ]
-        },
-        {
-            "name": "B 服",
-            "path": [
-                "{PROJECT_DIR}/resource",
-                "{PROJECT_DIR}/resource_bilibili"
-            ]
-        }
-    ],
-    "task": [],
-    "option": {
-        "任务选项1": {
-            "cases": [
-                {
-                    "name": "文本1",
-                    "pipeline_override": {
-                        "OcrTask": {
-                            "text": "文本1"
-                        }
-                    }
-                },
-                {
-                    "name": "文本2",
-                    "pipeline_override": {
-                        "OcrTask": {
-                            "text": "文本2"
-                        }
-                    }
-                }
-            ]
-        }
+  "interface_version": 2,
+  "name": "AutoDori",
+  "version": "1.0.21",
+  "url": "https://github.com/EvATive7/autodori",
+  "resource": [{"name": "Default", "label": "Game resources", "path": "{PROJECT_DIR}/resource"}],
+  "controller": [{"name": "Android", "label": "Android device", "type": "Adb", "display_short_side": 720}],
+  "task": [
+    {"name": "LaunchGame", "label": "Launch game", "entry": "LaunchGame", "description": "Launch the game and wait until the live home screen is available.", "controller": "Android"},
+    {"name": "AutoLive", "label": "Auto live", "entry": "AutoLive", "description": "Select songs and play continuously until stopped.", "controller": "Android", "option": [{"name": "Difficulty"}, {"name": "LiveMode"}, {"name": "MinimumLiveBoost"}]},
+    {"name": "CloseGame", "label": "Close game", "entry": "CloseGame", "description": "Close the game on the selected device.", "controller": "Android"}
+  ],
+  "option": {
+    "Difficulty": {
+      "label": "Difficulty", "default_case": "Hard",
+      "cases": [
+        {"name": "Easy", "pipeline_override": {"set_difficulty": {"template": ["live/difficulty/easy_active.png", "live/difficulty/easy_inactive.png"], "target": [659, 495, 107, 97]}, "get_song_name": {"custom_recognition_param": {"difficulty": "easy"}}}},
+        {"name": "Normal", "pipeline_override": {"set_difficulty": {"template": ["live/difficulty/normal_active.png", "live/difficulty/normal_inactive.png"], "target": [768, 494, 107, 97]}, "get_song_name": {"custom_recognition_param": {"difficulty": "normal"}}}},
+        {"name": "Hard", "pipeline_override": {"set_difficulty": {"template": ["live/difficulty/hard_active.png", "live/difficulty/hard_inactive.png"], "target": [886, 494, 105, 97]}, "get_song_name": {"custom_recognition_param": {"difficulty": "hard"}}}},
+        {"name": "Expert", "pipeline_override": {"set_difficulty": {"template": ["live/difficulty/expert_active.png", "live/difficulty/expert_inactive.png"], "target": [996, 493, 107, 97]}, "get_song_name": {"custom_recognition_param": {"difficulty": "expert"}}}},
+        {"name": "Special", "pipeline_override": {"set_difficulty": {"template": ["live/difficulty/special_active.png", "live/difficulty/special_inactive.png"], "target": [1086, 449, 192, 184]}, "get_song_name": {"custom_recognition_param": {"difficulty": "special"}}}}
+      ]
+    },
+    "LiveMode": {
+      "label": "Live mode", "default_case": "FreeLive",
+      "cases": [
+        {"name": "FreeLive", "label": "Free live", "pipeline_override": {"select_live_mode": {"recognition": "OCR", "expected": "自由演出", "roi": [679, 183, 257, 354], "action": "Click", "post_delay": 1000, "next": ["select_song", "select_live_mode", "live_home_button"], "interrupt": ["login_expired", "connect_failed"]}}},
+        {"name": "ChallengeLive", "label": "Challenge live", "pipeline_override": {"select_live_mode": {"recognition": "OCR", "expected": "挑战演出", "roi": [679, 183, 257, 354], "action": "Click", "post_delay": 1000, "next": ["select_song", "select_live_mode", "live_home_button"], "interrupt": ["login_expired", "connect_failed"]}}}
+      ]
+    },
+    "MinimumLiveBoost": {
+      "type": "input", "label": "Minimum live boost",
+      "input": [{"name": "value", "label": "Minimum live boost", "default": "1", "pipeline_type": "int", "verify": "^\\d+$", "pattern_msg": "Enter a non-negative integer."}],
+      "pipeline_override": {"ensure_liveboost": {"custom_action_param": {"minimum": "{value}"}}}
     }
+  },
+  "agent": {"child_exec": "{PROJECT_DIR}/agent/autodori-agent.exe", "timeout": 30}
 }

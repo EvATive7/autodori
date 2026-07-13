@@ -51,7 +51,6 @@ A BanG Dream! helper
 1. Download the latest version from [release](https://github.com/EvATive7/autodori/releases)  
 2. Extract, then run `autodori.exe`
 3. Run `autodori.exe -h` in command line to see more options
-4. You can edit `data/config.yml` to change settings: [Config Example](./docs/config_eg/config.yml)
 
 ### If you need to fine-tune parameters, modify code for higher score / testing, or development, run from source  
 
