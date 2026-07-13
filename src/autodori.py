@@ -88,7 +88,7 @@ class AgentSession:
         controller = context.tasker.controller
         info = controller.info
         if info.get("type") != "adb":
-            raise RuntimeError("AutoDori requires an ADB Controller")
+            raise RuntimeError("autodori requires an ADB Controller")
 
         config = info.get("config")
         if not isinstance(config, dict):
@@ -112,9 +112,9 @@ class AgentSession:
         player_path = player_config.get("path")
         player_index = player_config.get("index")
         if not isinstance(player_path, str) or not player_path:
-            raise RuntimeError("The AutoDori player path must be a non-empty string")
+            raise RuntimeError("The autodori player path must be a non-empty string")
         if not isinstance(player_index, int):
-            raise RuntimeError("The AutoDori player index must be an integer")
+            raise RuntimeError("The autodori player index must be an integer")
 
         if is_mumu:
             if (Path(player_path) / "nx_main" / "sdk" / "external_renderer_ipc.dll").is_file():

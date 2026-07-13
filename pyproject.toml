@@ -1,7 +1,7 @@
 [project]
 name = "autodori-agent"
 version = "1.0.21"
-description = "AutoDori MaaFramework Agent Server"
+description = "autodori MaaFramework Agent Server"
 requires-python = ">=3.10"
 dependencies = [
     "diskcache",

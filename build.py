@@ -15,7 +15,7 @@ ASSETS = ROOT / "assets"
 RESOURCE = ASSETS / "resource"
 BUILD = ROOT / "build" / "agent"
 DIST = ROOT / "dist"
-DEFAULT_OUTPUT = DIST / "AutoDori"
+DEFAULT_OUTPUT = DIST / "autodori"
 MFA_VERSION = "v2.12.1"
 MFA_ARCHIVE_URL = (
     "https://github.com/MaaXYZ/MFAAvalonia/releases/download/"
@@ -104,7 +104,7 @@ def publish_gui(project: Path, output: Path) -> None:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Build the AutoDori MFA package")
+    parser = argparse.ArgumentParser(description="Build the autodori MFA package")
     parser.add_argument("--output", type=Path, default=DEFAULT_OUTPUT)
     parser.add_argument("--without-gui", action="store_true")
     args = parser.parse_args()

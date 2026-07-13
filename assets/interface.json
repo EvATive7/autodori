@@ -1,6 +1,6 @@
 {
   "interface_version": 2,
-  "name": "AutoDori",
+  "name": "autodori",
   "version": "1.0.21",
   "url": "https://github.com/EvATive7/autodori",
   "resource": [{"name": "Default", "label": "Game resources", "path": "{PROJECT_DIR}/resource"}],
