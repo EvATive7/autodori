@@ -1,0 +1,25 @@
+[project]
+name = "autodori-agent"
+version = "1.0.21"
+description = "AutoDori MaaFramework Agent Server"
+requires-python = ">=3.10"
+dependencies = [
+    "diskcache",
+    "fuzzywuzzy",
+    "ld-ipc.py",
+    "maafw==5.8.0",
+    "minitouch.py>=1.1.2",
+    "mumuipc.py>=0.0.2",
+    "numpy",
+    "peewee",
+    "pillow",
+    "playhouse",
+    "python-levenshtein",
+    "pyyaml",
+    "requests",
+]
+
+[dependency-groups]
+build = [
+    "pyinstaller>=6.17.0",
+]

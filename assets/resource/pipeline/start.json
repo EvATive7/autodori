@@ -4,17 +4,15 @@
         "package": "com.bilibili.star.bili",
         "next": [
             "find_startpage_menu",
-            "LaunchGameReady"
-        ],
-        "interrupt": [
-            "ok_button",
-            "confirm_button"
+            "LaunchGameReady",
+            "[JumpBack]ok_button",
+            "[JumpBack]confirm_button"
         ]
     },
     "find_startpage_menu": {
         "recognition": "TemplateMatch",
         "template": "startpage/menu.png",
-        "next": "find_startpage_age_tag",
+        "next": ["find_startpage_age_tag"],
         "roi": [
             1004,
             495,
@@ -26,7 +24,7 @@
     "find_startpage_age_tag": {
         "recognition": "TemplateMatch",
         "template": "startpage/age_tag.png",
-        "next": "find_startpage_criware",
+        "next": ["find_startpage_criware"],
         "roi": [
             936,
             0,
@@ -37,7 +35,7 @@
     "find_startpage_criware": {
         "recognition": "TemplateMatch",
         "template": "startpage/criware.png",
-        "next": "tap_start",
+        "next": ["tap_start"],
         "roi": [
             936,
             0,
@@ -53,15 +51,15 @@
             388,
             284
         ],
-        "next": "LaunchGameReady",
-        "interrupt": [
-            "next_button",
-            "tap_to_next",
-            "close_button",
-            "reader_menu",
-            "download",
-            "connect_failed",
-            "safe_random_click"
+        "next": [
+            "LaunchGameReady",
+            "[JumpBack]next_button",
+            "[JumpBack]tap_to_next",
+            "[JumpBack]close_button",
+            "[JumpBack]reader_menu",
+            "[JumpBack]download",
+            "[JumpBack]connect_failed",
+            "[JumpBack]safe_random_click"
         ],
         "timeout": 300000
     },

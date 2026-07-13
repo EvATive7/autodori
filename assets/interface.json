@@ -24,8 +24,8 @@
     "LiveMode": {
       "label": "Live mode", "default_case": "FreeLive",
       "cases": [
-        {"name": "FreeLive", "label": "Free live", "pipeline_override": {"select_live_mode": {"recognition": "OCR", "expected": "自由演出", "roi": [679, 183, 257, 354], "action": "Click", "post_delay": 1000, "next": ["select_song", "select_live_mode", "live_home_button"], "interrupt": ["login_expired", "connect_failed"]}}},
-        {"name": "ChallengeLive", "label": "Challenge live", "pipeline_override": {"select_live_mode": {"recognition": "OCR", "expected": "挑战演出", "roi": [679, 183, 257, 354], "action": "Click", "post_delay": 1000, "next": ["select_song", "select_live_mode", "live_home_button"], "interrupt": ["login_expired", "connect_failed"]}}}
+        {"name": "FreeLive", "label": "Free live", "pipeline_override": {"select_live_mode": {"recognition": "OCR", "expected": "自由演出", "roi": [679, 183, 257, 354], "action": "Click", "post_delay": 1000, "next": ["select_song", "select_live_mode", "live_home_button", "[JumpBack]login_expired", "[JumpBack]connect_failed"]}}},
+        {"name": "ChallengeLive", "label": "Challenge live", "pipeline_override": {"select_live_mode": {"recognition": "OCR", "expected": "挑战演出", "roi": [679, 183, 257, 354], "action": "Click", "post_delay": 1000, "next": ["select_song", "select_live_mode", "live_home_button", "[JumpBack]login_expired", "[JumpBack]connect_failed"]}}}
       ]
     },
     "MinimumLiveBoost": {

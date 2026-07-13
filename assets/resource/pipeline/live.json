@@ -1,12 +1,15 @@
 {
     "AutoLive": {
+        "next": ["InitializeRuntime"]
+    },
+    "InitializeRuntime": {
+        "action": "Custom",
+        "custom_action": "InitializeRuntime",
         "next": [
             "select_song",
             "select_live_mode",
-            "live_home_button"
-        ],
-        "interrupt": [
-            "to_tome"
+            "live_home_button",
+            "[JumpBack]to_tome"
         ]
     },
     "live_home_button": {
@@ -16,12 +19,10 @@
         "post_delay": 1500,
         "next": [
             "select_live_mode",
-            "live_home_button"
-        ],
-        "interrupt": [
-            "next_button",
-            "close_button",
-            "donot_usenow_button"
+            "live_home_button",
+            "[JumpBack]next_button",
+            "[JumpBack]close_button",
+            "[JumpBack]donot_usenow_button"
         ]
     },
     "select_live_mode": {
@@ -30,8 +31,13 @@
         "roi": [679, 183, 257, 354],
         "action": "Click",
         "post_delay": 1000,
-        "next": ["select_song", "select_live_mode", "live_home_button"],
-        "interrupt": ["login_expired", "connect_failed"]
+        "next": [
+            "select_song",
+            "select_live_mode",
+            "live_home_button",
+            "[JumpBack]login_expired",
+            "[JumpBack]connect_failed"
+        ]
     },
     "select_song": {
         "recognition": "OCR",
@@ -68,9 +74,9 @@
             "difficulty": "hard"
         },
         "custom_action": "SaveSong",
-        "next": "comfirm_song",
-        "interrupt": [
-            "confirm_button"
+        "next": [
+            "comfirm_song",
+            "[JumpBack]confirm_button"
         ]
     },
     "set_difficulty": {
@@ -80,10 +86,12 @@
             "live/difficulty/hard_active.png",
             "live/difficulty/hard_inactive.png"
         ],
-        "next": "get_song_name",
+        "next": [
+            "get_song_name",
+            "[JumpBack]random_choice_song"
+        ],
         "target": [886, 494, 105, 97],
-        "timeout": 5000,
-        "interrupt": ["random_choice_song"]
+        "timeout": 5000
     },
     "comfirm_song": {
         "recognition": "OCR",
@@ -112,10 +120,8 @@
             27
         ],
         "next": [
-            "disable_liveplay"
-        ],
-        "interrupt": [
-            "switch_liveplay_mode"
+            "disable_liveplay",
+            "[JumpBack]switch_liveplay_mode"
         ]
     },
     "exit_rehearsal_mode": {
@@ -135,8 +141,10 @@
         "custom_action_param": {
             "minimum": 1
         },
-        "next": "ensure_live_mode",
-        "interrupt": "exit_rehearsal_mode"
+        "next": [
+            "ensure_live_mode",
+            "[JumpBack]exit_rehearsal_mode"
+        ]
     },
     "switch_liveplay_mode": {
         "action": "Click",
@@ -154,8 +162,7 @@
             "live/button/liveplay_mv.png"
         ],
         "inverse": true,
-        "next": "startlive",
-        "interrupt": [],
+        "next": ["startlive"],
         "roi": [
             58,
             580,
@@ -167,32 +174,32 @@
         "action": "Click",
         "recognition": "TemplateMatch",
         "template": "live/button/startlive.png",
-        "next": "wait_live_start",
-        "interrupt": [
-            "startlive",
-            "confirm_button",
-            "login_expired",
-            "connect_failed"
+        "next": [
+            "wait_live_start",
+            "[JumpBack]startlive",
+            "[JumpBack]confirm_button",
+            "[JumpBack]login_expired",
+            "[JumpBack]connect_failed"
         ],
         "post_delay": 2000
     },
     "wait_live_start": {
         "recognition": "TemplateMatch",
         "template": "live/button/pause.png",
-        "next": "playsong"
+        "next": ["playsong"]
     },
     "playsong": {
         "action": "Custom",
         "custom_action": "Play",
-        "next": "wait_playresult",
-        "interrupt": [
-            "live_failed",
-            "next_button",
-            "close_button",
-            "ok_button",
-            "confirm_button",
-            "login_expired",
-            "connect_failed"
+        "next": [
+            "wait_playresult",
+            "[JumpBack]live_failed",
+            "[JumpBack]next_button",
+            "[JumpBack]close_button",
+            "[JumpBack]ok_button",
+            "[JumpBack]confirm_button",
+            "[JumpBack]login_expired",
+            "[JumpBack]connect_failed"
         ],
         "timeout": 50000
     },
@@ -202,17 +209,17 @@
             "live/scored.png",
             "live/activity_scored.png"
         ],
-        "next": "wait_playresult1",
+        "next": [
+            "wait_playresult1",
+            "[JumpBack]next_button",
+            "[JumpBack]close_button",
+            "[JumpBack]ok_button",
+            "[JumpBack]confirm_button"
+        ],
         "pre_wait_freezes": {
             "threshold": 0.65,
             "time": 5000
         },
-        "interrupt": [
-            "next_button",
-            "close_button",
-            "ok_button",
-            "confirm_button"
-        ],
         "post_delay": 3000
     },
     "wait_playresult1": {
@@ -222,7 +229,7 @@
             "live/activity_scored.png"
         ],
         "pre_wait_freezes": 2000,
-        "next": "save_succeed_playresult"
+        "next": ["save_succeed_playresult"]
     },
     "save_succeed_playresult": {
         "recognition": "Custom",
@@ -232,21 +239,21 @@
         "custom_action_param": {
             "succeed": true
         },
-        "next": "live_home_button",
-        "interrupt": [
-            "next_button",
-            "close_button",
-            "ok_button",
-            "confirm_button",
-            "reader_menu",
-            "read_after"
+        "next": [
+            "live_home_button",
+            "[JumpBack]next_button",
+            "[JumpBack]close_button",
+            "[JumpBack]ok_button",
+            "[JumpBack]confirm_button",
+            "[JumpBack]reader_menu",
+            "[JumpBack]read_after"
         ]
     },
     "liveagain": {
         "recognition": "TemplateMatch",
         "template": "live/button/liveagain.png",
         "action": "Click",
-        "next": "select_song"
+        "next": ["select_song"]
     },
     "live_failed": {
         "recognition": "OCR",
@@ -259,11 +266,9 @@
         ],
         "next": [
             "save_failed_playresult",
-            "exit_button"
-        ],
-        "interrupt": [
-            "login_expired",
-            "connect_failed"
+            "exit_button",
+            "[JumpBack]login_expired",
+            "[JumpBack]connect_failed"
         ]
     },
     "save_failed_playresult": {
@@ -272,9 +277,9 @@
         "custom_action_param": {
             "succeed": false
         },
-        "next": "live_home_button",
-        "interrupt": [
-            "exit_button"
+        "next": [
+            "live_home_button",
+            "[JumpBack]exit_button"
         ]
     }
 }

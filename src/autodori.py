@@ -1,7 +1,6 @@
 import datetime
 import json
 import logging
-import os
 import random
 import re
 import string
@@ -18,10 +17,13 @@ cache_path = Path("cache")
 cache_path.mkdir(exist_ok=True)
 Path("debug").mkdir(exist_ok=True)
 
+runtime_root = Path(getattr(sys, "_MEIPASS", Path(__file__).resolve().parent.parent))
+
 
 import numpy as np
 from fuzzywuzzy import process as fzwzprocess
 from maa.context import Context
+from maa.controller import Controller
 from maa.custom_action import CustomAction, CustomRecognitionResult
 from maa.custom_recognition import CustomRecognition
 from maa.define import RectType
@@ -45,11 +47,7 @@ DEFAULT_MOVE_SLICE_SIZE = 10
 MAX_FAILED_TIMES = 10
 CMD_SLICE_SIZE = 100
 
-current_player: player.Player = None
 current_orientation: int = 0
-mnt: MNT = None
-adb_path: Path | None = None
-device_address: str | None = None
 all_songs: dict = BestdoriAPI.get_song_list()
 all_song_name_indexes: dict[str, str] = {
     list(filter(lambda title: title is not None, sinfo["musicTitle"]))[0]: sid
@@ -62,6 +60,114 @@ play_failed_times: int = 0
 callback_data: dict = {}
 callback_data_lock = threading.Lock()
 current_difficulty = "hard"
+
+
+def decode_agent_value(value):
+    if not isinstance(value, str):
+        return value
+    try:
+        return json.loads(value)
+    except json.JSONDecodeError:
+        return value
+
+
+class AgentSession:
+    """Owns the runtime resources for one Controller-bound Agent session."""
+
+    def __init__(self) -> None:
+        self._controller: Controller | None = None
+        self.player: player.Player | None = None
+        self.mnt: MNT | None = None
+        self.adb_path: str | None = None
+        self.adb_serial: str | None = None
+
+    def bind(self, context: Context) -> None:
+        if self._controller is not None:
+            return
+
+        controller = context.tasker.controller
+        info = controller.info
+        if info.get("type") != "adb":
+            raise RuntimeError("AutoDori requires an ADB Controller")
+
+        config = info.get("config")
+        if not isinstance(config, dict):
+            raise RuntimeError("The ADB Controller config must be a JSON object")
+
+        extras = config.get("extras")
+        if not isinstance(extras, dict):
+            raise RuntimeError("The ADB Controller config must define extras")
+
+        mumu_config = extras.get("mumu")
+        ld_config = extras.get("ld")
+        if isinstance(mumu_config, dict) and mumu_config.get("enable"):
+            player_config = mumu_config
+            is_mumu = True
+        elif isinstance(ld_config, dict) and ld_config.get("enable"):
+            player_config = ld_config
+            is_mumu = False
+        else:
+            raise RuntimeError("The selected Controller must provide MuMu or LD extras")
+
+        player_path = player_config.get("path")
+        player_index = player_config.get("index")
+        if not isinstance(player_path, str) or not player_path:
+            raise RuntimeError("The AutoDori player path must be a non-empty string")
+        if not isinstance(player_index, int):
+            raise RuntimeError("The AutoDori player index must be an integer")
+
+        if is_mumu:
+            if (Path(player_path) / "nx_main" / "sdk" / "external_renderer_ipc.dll").is_file():
+                player_type = "mumuv5"
+            elif (Path(player_path) / "shell" / "sdk" / "external_renderer_ipc.dll").is_file():
+                player_type = "mumuv4"
+            else:
+                raise RuntimeError("Unable to identify the MuMu IPC library")
+        else:
+            player_type = "ld"
+
+        adb_path = info.get("adb_path")
+        adb_serial = info.get("adb_serial")
+        if not isinstance(adb_path, str) or not adb_path:
+            raise RuntimeError("The ADB Controller did not provide an adb_path")
+        if not isinstance(adb_serial, str) or not adb_serial:
+            raise RuntimeError("The ADB Controller did not provide an adb_serial")
+
+        self.player = player.Player(player_type, Path(player_path), player_index)
+        self.mnt = MNT(
+            adb_serial,
+            type_="EvATive7",
+            communicate_type=MNTServerCommunicateType.STDIO,
+            mnt_asset_path=runtime_root / "assets" / "minitouch_EvATive7",
+            callback=mnt_callback,
+            adb_executor=adb_path,
+        )
+        self.adb_path = adb_path
+        self.adb_serial = adb_serial
+        self._controller = controller
+        logging.info("Initialized Agent runtime for ADB device %s", adb_serial)
+
+    def require_runtime(self) -> tuple[player.Player, MNT, str, str]:
+        if (
+            self.player is None
+            or self.mnt is None
+            or self.adb_path is None
+            or self.adb_serial is None
+        ):
+            raise RuntimeError("The Agent runtime has not been initialized")
+        return self.player, self.mnt, self.adb_path, self.adb_serial
+
+    def close(self) -> None:
+        if self.mnt is not None:
+            self.mnt.stop()
+        self._controller = None
+        self.player = None
+        self.mnt = None
+        self.adb_path = None
+        self.adb_serial = None
+
+
+agent_session = AgentSession()
 
 
 def reset_callback_data():
@@ -91,11 +197,23 @@ def check_song_available(name, id_, difficulty):
     return True
 
 
+@AgentServer.custom_action("InitializeRuntime")
+class InitializeRuntime(CustomAction):
+    def run(self, context: Context, argv: CustomAction.RunArg):
+        try:
+            agent_session.bind(context)
+            return CustomAction.RunResult(True)
+        except Exception as e:
+            logging.error("Failed to initialize the Agent runtime: %s", e)
+            return CustomAction.RunResult(False)
+
+
 @AgentServer.custom_recognition("SongRecognition")
 class SongRecognition(CustomRecognition):
     def analyze(
         self, context: Context, argv: CustomRecognition.AnalyzeArg
     ) -> Union[CustomRecognition.AnalyzeResult, Optional[RectType]]:
+        agent_session.bind(context)
 
         roi = [200, 332, 368, 29]
 
@@ -149,6 +267,7 @@ class LiveBoostEnoughRecognition(CustomRecognition):
     def analyze(
         self, context: Context, argv: CustomRecognition.AnalyzeArg
     ) -> Union[CustomRecognition.AnalyzeResult, Optional[RectType]]:
+        agent_session.bind(context)
         # roi = [970, 29, 39, 21]
         roi = [979, 30, 61, 20]
 
@@ -184,9 +303,10 @@ class LiveBoostEnoughRecognition(CustomRecognition):
 @AgentServer.custom_action("HandleLiveBoost")
 class HandleLiveBoost(CustomAction):
     def run(self, context: Context, argv: CustomAction.RunArg):
-        liveboost = int(argv.reco_detail.best_result.detail)
+        agent_session.bind(context)
+        liveboost = int(decode_agent_value(argv.reco_detail.best_result.detail))
         params = json.loads(argv.custom_action_param or "{}")
-        minimum = int(params.get("minimum", 1))
+        minimum = int(decode_agent_value(params.get("minimum", 1)))
         if liveboost < minimum:
             logging.debug("Live boost not enough, ready to exit")
             context.run_action("close_app")
@@ -199,6 +319,7 @@ class PlayResultRecognition(CustomRecognition):
     def analyze(
         self, context: Context, argv: CustomRecognition.AnalyzeArg
     ) -> Union[CustomRecognition.AnalyzeResult, Optional[RectType]]:
+        agent_session.bind(context)
 
         types = {
             "score": {
@@ -258,6 +379,7 @@ class PlayResultRecognition(CustomRecognition):
 class SavePlayResult(CustomAction):
     def run(self, context: Context, argv: CustomAction.RunArg):
         try:
+            agent_session.bind(context)
             global current_song_id, play_failed_times
             succeed: bool = json.loads(argv.custom_action_param).get("succeed")
             if succeed:
@@ -289,8 +411,7 @@ class SavePlayResult(CustomAction):
 class Play(CustomAction):
     def run(self, context: Context, argv: CustomAction.RunArg):
         try:
-            if mnt is None:
-                init_player_and_mnt()
+            agent_session.bind(context)
             play_song()
             return CustomAction.RunResult(True)
         except Exception as e:
@@ -301,9 +422,16 @@ class Play(CustomAction):
 @AgentServer.custom_action("SaveSong")
 class SaveSong(CustomAction):
     def run(self, context: Context, argv: CustomAction.RunArg):
-        name: CustomRecognitionResult = argv.reco_detail.best_result.detail
-        save_song(name)
-        return CustomAction.RunResult(True)
+        try:
+            agent_session.bind(context)
+            name = decode_agent_value(argv.reco_detail.best_result.detail)
+            if not isinstance(name, str) or not name:
+                raise ValueError("Song recognition did not return a song name")
+            save_song(name)
+            return CustomAction.RunResult(True)
+        except Exception as e:
+            logging.error("Failed to save the selected song: %s", e)
+            return CustomAction.RunResult(False)
 
 
 def fuzzy_match_song(name):
@@ -319,10 +447,11 @@ def _get_orientation():
     3: 270°
     """
     try:
+        _, _, adb_path, adb_serial = agent_session.require_runtime()
         command_list = [
             str(adb_path),
             "-s",
-            device_address,
+            adb_serial,
             "shell",
             "dumpsys input|grep SurfaceOrientation",
         ]
@@ -342,6 +471,7 @@ def _get_orientation():
 
 def save_song(name):
     global current_song_name, current_song_id, current_chart, current_orientation
+    current_player, mnt, _, _ = agent_session.require_runtime()
     current_song_name = name
     current_song_id = all_song_name_indexes[current_song_name]
     current_chart = Chart((current_song_id, current_difficulty), current_song_name)
@@ -354,6 +484,7 @@ def save_song(name):
 
 
 def play_song():
+    _, mnt, _, _ = agent_session.require_runtime()
     logging.info("Start play")
     reset_callback_data()
 
@@ -400,6 +531,7 @@ def play_song():
 
 
 def wait_first_note():
+    current_player, _, _, _ = agent_session.require_runtime()
     last_color = None
     waited_frames = 0
     info = get_runtime_info(current_player.resolution)["wait_first"]
@@ -478,36 +610,6 @@ def mnt_callback(event: MNTEvent, data: MNTEventData):
         callback_data_lock.release()
 
 
-def init_player_and_mnt():
-    """Initialize minitouch from the device selected by the GUI.
-
-    AUTODORI_DEVICE must contain the selected ADB endpoint and the emulator
-    metadata required by the player IPC implementation.
-    """
-    global adb_path, current_player, device_address, mnt
-
-    raw_device = os.environ.get("AUTODORI_DEVICE")
-    if not raw_device:
-        raise RuntimeError("AUTODORI_DEVICE was not provided by the GUI")
-
-    device = json.loads(raw_device)
-    adb_path = Path(device["adb_path"])
-    device_address = device["address"]
-    current_player = player.Player(
-        device["player"]["type"], Path(device["player"]["path"]), device["player"]["index"]
-    )
-    mnt = MNT(
-        device_address,
-        type_="EvATive7",
-        communicate_type=MNTServerCommunicateType.STDIO,
-        mnt_asset_path=Path("./assets/minitouch_EvATive7"),
-        callback=mnt_callback,
-        adb_executor=str(adb_path.absolute()),
-    )
-
-    logging.info("Mumu and MNT inited.")
-
-
 def configure_log():
     logging.basicConfig(
         level=logging.DEBUG,
@@ -536,8 +638,7 @@ def main():
     try:
         AgentServer.join()
     finally:
-        if mnt is not None:
-            mnt.stop()
+        agent_session.close()
         AgentServer.shut_down()
 
 
