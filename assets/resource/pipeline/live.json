@@ -200,8 +200,7 @@
             "[JumpBack]confirm_button",
             "[JumpBack]login_expired",
             "[JumpBack]connect_failed"
-        ],
-        "timeout": 50000
+        ]
     },
     "wait_playresult": {
         "recognition": "TemplateMatch",

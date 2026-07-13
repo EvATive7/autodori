@@ -34,5 +34,5 @@
       "pipeline_override": {"ensure_liveboost": {"custom_action_param": {"minimum": "{value}"}}}
     }
   },
-  "agent": {"child_exec": "{PROJECT_DIR}/agent/autodori-agent.exe", "timeout": 30}
+  "agent": {"child_exec": "{PROJECT_DIR}/agent/autodori-agent.exe", "timeout": 300}
 }
