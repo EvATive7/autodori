@@ -1,0 +1,18 @@
+{
+  "project_name": "autodori",
+  "resource_default": "Game resources",
+  "controller_android": "Android device",
+  "task_launch_game": "Launch game",
+  "task_launch_game_description": "Launch the game and wait until the live home screen is available.",
+  "task_auto_live": "Auto live",
+  "task_auto_live_description": "Select songs and play continuously until stopped.",
+  "task_close_game": "Close game",
+  "task_close_game_description": "Close the game on the selected device.",
+  "option_difficulty": "Difficulty",
+  "option_live_mode": "Live mode",
+  "live_mode_free": "Free live",
+  "live_mode_challenge": "Challenge live",
+  "option_minimum_live_boost": "Minimum live boost",
+  "input_minimum_live_boost": "Minimum live boost",
+  "validation_non_negative_integer": "Enter a non-negative integer."
+}
