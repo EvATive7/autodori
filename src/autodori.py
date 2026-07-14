@@ -166,6 +166,12 @@ class AgentSession:
         )
         return self.completed_live_count >= self.live_limit
 
+    def live_limit_reached(self) -> bool:
+        return (
+            self.live_limit is not None
+            and self.completed_live_count >= self.live_limit
+        )
+
     def require_runtime(self) -> tuple[player.Player, MNT, str, str]:
         if (
             self.player is None
@@ -407,6 +413,17 @@ class PlayResultRecognition(CustomRecognition):
         return CustomRecognition.AnalyzeResult([0, 0, 0, 0], json.dumps(result))
 
 
+@AgentServer.custom_recognition("LiveLimitReached")
+class LiveLimitReached(CustomRecognition):
+    def analyze(
+        self, context: Context, argv: CustomRecognition.AnalyzeArg
+    ) -> Union[CustomRecognition.AnalyzeResult, Optional[RectType]]:
+        agent_session.bind(context)
+        if agent_session.live_limit_reached():
+            return CustomRecognition.AnalyzeResult([0, 0, 0, 0], "")
+        return CustomRecognition.AnalyzeResult(None, "")
+
+
 @AgentServer.custom_action("SavePlayResult")
 class SavePlayResult(CustomAction):
     def run(self, context: Context, argv: CustomAction.RunArg):
@@ -433,9 +450,8 @@ class SavePlayResult(CustomAction):
                 logging.error("Failed attempts exceed max failed times")
                 context.run_action("close_app")
                 context.run_action("stop")
-            elif agent_session.complete_live():
-                logging.info("Configured live count reached; stopping AutoLive")
-                context.run_action("stop")
+            else:
+                agent_session.complete_live()
             return CustomAction.RunResult(True)
         except Exception as e:
             logging.error(f"Failed to save play result: {e}")

@@ -18,12 +18,18 @@
         "action": "Click",
         "post_delay": 1500,
         "next": [
+            "return_to_main_after_limit",
             "select_live_mode",
             "live_home_button",
             "[JumpBack]next_button",
             "[JumpBack]close_button",
             "[JumpBack]donot_usenow_button"
         ]
+    },
+    "return_to_main_after_limit": {
+        "recognition": "Custom",
+        "custom_recognition": "LiveLimitReached",
+        "next": ["to_tome"]
     },
     "select_live_mode": {
         "recognition": "OCR",
