@@ -10,10 +10,13 @@ import urllib.request
 import zipfile
 from pathlib import Path
 
+from PIL import Image
+
 
 ROOT = Path(__file__).resolve().parent
 ASSETS = ROOT / "assets"
 RESOURCE = ASSETS / "resource"
+GUI_LOGO = ROOT / "docs" / "logo.png"
 BUILD = ROOT / "build" / "agent"
 DIST = ROOT / "dist"
 DEFAULT_OUTPUT = DIST / "autodori"
@@ -38,6 +41,16 @@ def copy_project_files(project: Path) -> None:
     for language_file in ASSETS.glob("interface_*.json"):
         shutil.copy2(language_file, project / language_file.name)
     shutil.copytree(RESOURCE, project / "resource")
+    if not GUI_LOGO.is_file():
+        raise FileNotFoundError(f"GUI logo is missing: {GUI_LOGO}")
+    icon_path = project / "Assets" / "logo.ico"
+    icon_path.parent.mkdir()
+    with Image.open(GUI_LOGO) as logo:
+        logo.convert("RGBA").save(
+            icon_path,
+            format="ICO",
+            sizes=[(256, 256), (128, 128), (64, 64), (48, 48), (32, 32), (16, 16)],
+        )
 
 
 def build_agent(project: Path, clean: bool) -> None:
