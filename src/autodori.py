@@ -80,6 +80,8 @@ class AgentSession:
         self.mnt: MNT | None = None
         self.adb_path: str | None = None
         self.adb_serial: str | None = None
+        self.live_limit: int | None = None
+        self.completed_live_count = 0
 
     def bind(self, context: Context) -> None:
         if self._controller is not None:
@@ -147,6 +149,23 @@ class AgentSession:
         self._controller = controller
         logging.info("Initialized Agent runtime for ADB device %s", adb_serial)
 
+    def start_auto_live(self, limit: int | None) -> None:
+        if limit is not None and limit <= 0:
+            raise ValueError("The live count limit must be a positive integer")
+        self.live_limit = limit
+        self.completed_live_count = 0
+
+    def complete_live(self) -> bool:
+        if self.live_limit is None:
+            return False
+        self.completed_live_count += 1
+        logging.info(
+            "Completed live %d of %d",
+            self.completed_live_count,
+            self.live_limit,
+        )
+        return self.completed_live_count >= self.live_limit
+
     def require_runtime(self) -> tuple[player.Player, MNT, str, str]:
         if (
             self.player is None
@@ -165,6 +184,8 @@ class AgentSession:
         self.mnt = None
         self.adb_path = None
         self.adb_serial = None
+        self.live_limit = None
+        self.completed_live_count = 0
 
 
 agent_session = AgentSession()
@@ -202,6 +223,15 @@ class InitializeRuntime(CustomAction):
     def run(self, context: Context, argv: CustomAction.RunArg):
         try:
             agent_session.bind(context)
+            params = json.loads(argv.custom_action_param or "{}")
+            if params is None:
+                params = {}
+            if not isinstance(params, dict):
+                raise ValueError("The AutoLive parameters must be a JSON object")
+            limit = params.get("limit")
+            agent_session.start_auto_live(
+                int(decode_agent_value(limit)) if limit is not None else None
+            )
             return CustomAction.RunResult(True)
         except Exception as e:
             message = f"AutoLive cannot start: {e}"
@@ -402,6 +432,9 @@ class SavePlayResult(CustomAction):
             if play_failed_times >= MAX_FAILED_TIMES:
                 logging.error("Failed attempts exceed max failed times")
                 context.run_action("close_app")
+                context.run_action("stop")
+            elif agent_session.complete_live():
+                logging.info("Configured live count reached; stopping AutoLive")
                 context.run_action("stop")
             return CustomAction.RunResult(True)
         except Exception as e:

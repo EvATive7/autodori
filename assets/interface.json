@@ -41,6 +41,7 @@
       "option": [
         {"name": "Difficulty"},
         {"name": "LiveMode"},
+        {"name": "UnlimitedLive"},
         {"name": "MinimumLiveBoost"}
       ]
     },
@@ -57,25 +58,55 @@
       "label": "$option_difficulty",
       "default_case": "Hard",
       "cases": [
-        {"name": "Easy", "pipeline_override": {"select_difficulty": {"recognition": "OCR", "expected": "简单"}}},
-        {"name": "Normal", "pipeline_override": {"select_difficulty": {"recognition": "OCR", "expected": "普通"}}},
-        {"name": "Hard", "pipeline_override": {"select_difficulty": {"recognition": "OCR", "expected": "困难"}}},
-        {"name": "Expert", "pipeline_override": {"select_difficulty": {"recognition": "OCR", "expected": "专家"}}},
-        {"name": "Special", "pipeline_override": {"select_difficulty": {"recognition": "OCR", "expected": "特殊"}}}
+        {"name": "Easy", "pipeline_override": {"set_difficulty": {"recognition": "OCR", "expected": "简单"}}},
+        {"name": "Normal", "pipeline_override": {"set_difficulty": {"recognition": "OCR", "expected": "普通"}}},
+        {"name": "Hard", "pipeline_override": {"set_difficulty": {"recognition": "OCR", "expected": "困难"}}},
+        {"name": "Expert", "pipeline_override": {"set_difficulty": {"recognition": "OCR", "expected": "专家"}}},
+        {"name": "Special", "pipeline_override": {"set_difficulty": {"recognition": "OCR", "expected": "特殊"}}}
       ]
     },
     "LiveMode": {
       "label": "$option_live_mode",
       "default_case": "FreeLive",
       "cases": [
-        {"name": "FreeLive", "label": "$live_mode_free", "pipeline_override": {"select_live_mode": {"recognition": "OCR", "expected": "自由演出"}, "back_to_live_home": {"interrupt": ["JumpBack"]}}},
-        {"name": "ChallengeLive", "label": "$live_mode_challenge", "pipeline_override": {"select_live_mode": {"recognition": "OCR", "expected": "挑战演出"}, "back_to_live_home": {"interrupt": ["JumpBack"]}}}
+        {"name": "FreeLive", "label": "$live_mode_free", "pipeline_override": {"select_live_mode": {"recognition": "OCR", "expected": "自由演出"}}},
+        {"name": "ChallengeLive", "label": "$live_mode_challenge", "pipeline_override": {"select_live_mode": {"recognition": "OCR", "expected": "挑战演出"}}}
       ]
+    },
+    "UnlimitedLive": {
+      "type": "switch",
+      "label": "$option_unlimited_live",
+      "default_case": "Yes",
+      "cases": [
+        {"name": "Yes", "label": "$unlimited_live_yes"},
+        {"name": "No", "label": "$unlimited_live_no", "option": ["LiveCount"]}
+      ]
+    },
+    "LiveCount": {
+      "type": "input",
+      "label": "$option_live_count",
+      "inputs": [
+        {
+          "name": "count",
+          "label": "$input_live_count",
+          "default": "1",
+          "pipeline_type": "int",
+          "verify": "^[1-9]\\d*$",
+          "pattern_msg": "$validation_positive_integer"
+        }
+      ],
+      "pipeline_override": {
+        "InitializeRuntime": {
+          "custom_action_param": {
+            "limit": "{count}"
+          }
+        }
+      }
     },
     "MinimumLiveBoost": {
       "type": "input",
       "label": "$option_minimum_live_boost",
-      "input": [
+      "inputs": [
         {
           "name": "value",
           "label": "$input_minimum_live_boost",
