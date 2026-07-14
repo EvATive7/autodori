@@ -40,7 +40,7 @@ def copy_project_files(project: Path) -> None:
     shutil.copytree(RESOURCE, project / "resource")
 
 
-def build_agent(project: Path) -> None:
+def build_agent(project: Path, clean: bool) -> None:
     maa_bin = package_path("maa") / "bin"
     agent_binary = package_path("MaaAgentBinary")
     minitouch = ASSETS / "minitouch_EvATive7"
@@ -52,7 +52,6 @@ def build_agent(project: Path) -> None:
         "-m",
         "PyInstaller",
         "--noconfirm",
-        "--clean",
         "--onefile",
         "--name",
         "autodori-agent",
@@ -74,11 +73,20 @@ def build_agent(project: Path) -> None:
         "MaaAgentBinary",
         str(ROOT / "src" / "autodori.py"),
     ]
+    if clean:
+        command.insert(4, "--clean")
     subprocess.run(command, check=True)
     shutil.copy2(BUILD / "dist" / "autodori-agent.exe", project / "agent" / "autodori-agent.exe")
 
 
 def download_mfa_archive(destination: Path) -> None:
+    if destination.exists():
+        with destination.open("rb") as archive:
+            digest = hashlib.file_digest(archive, "sha256").hexdigest()
+        if digest == MFA_ARCHIVE_SHA256:
+            return
+        destination.unlink()
+
     request = urllib.request.Request(MFA_ARCHIVE_URL, headers={"User-Agent": "autodori-build"})
     with urllib.request.urlopen(request) as response, destination.open("wb") as output:
         shutil.copyfileobj(response, output)
@@ -118,19 +126,22 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Build the autodori MFA package")
     parser.add_argument("--output", type=Path, default=DEFAULT_OUTPUT)
     parser.add_argument("--without-gui", action="store_true")
+    parser.add_argument("--clean", action="store_true", help="discard build caches before building")
     parser.add_argument("--version", default=project_version())
     parser.add_argument("--arch", default="win-x64")
     args = parser.parse_args()
 
     output = args.output.resolve()
-    project = BUILD / "project"
-    if BUILD.exists():
+    if args.clean and BUILD.exists():
         shutil.rmtree(BUILD)
+    project = BUILD / "project"
+    if project.exists():
+        shutil.rmtree(project)
     project.mkdir(parents=True)
     (project / "agent").mkdir()
 
     copy_project_files(project)
-    build_agent(project)
+    build_agent(project, args.clean)
 
     if output.exists():
         shutil.rmtree(output)
