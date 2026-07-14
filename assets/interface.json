@@ -46,6 +46,13 @@
       ]
     },
     {
+      "name": "ClaimRewards",
+      "label": "$task_claim_rewards",
+      "entry": "ClaimRewards",
+      "description": "$task_claim_rewards_description",
+      "controller": "Android"
+    },
+    {
       "name": "CloseGame",
       "label": "$task_close_game",
       "entry": "CloseGame",

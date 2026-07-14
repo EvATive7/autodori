@@ -6,6 +6,8 @@
   "task_launch_game_description": "启动游戏并等待演出主页可用。",
   "task_auto_live": "自动打歌",
   "task_auto_live_description": "连续随机选歌并自动打歌，直到手动停止或达到设定数量。",
+  "task_claim_rewards": "领取奖励",
+  "task_claim_rewards_description": "领取礼物箱中的全部待领取奖励，并返回主页。",
   "task_close_game": "关闭游戏",
   "task_close_game_description": "关闭所选设备上的游戏。",
   "option_difficulty": "难度",

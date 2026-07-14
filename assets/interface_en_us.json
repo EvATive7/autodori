@@ -6,6 +6,8 @@
   "task_launch_game_description": "Launch the game and wait until the live home screen is available.",
   "task_auto_live": "Auto live",
   "task_auto_live_description": "Select songs and play continuously until stopped or the configured count is reached.",
+  "task_claim_rewards": "Claim rewards",
+  "task_claim_rewards_description": "Claim all pending gifts and return to the home screen.",
   "task_close_game": "Close game",
   "task_close_game_description": "Close the game on the selected device.",
   "option_difficulty": "Difficulty",

@@ -1,0 +1,50 @@
+{
+    "ClaimRewards": {
+        "recognition": "TemplateMatch",
+        "template": "home/gift.png",
+        "roi": [1180, 210, 100, 90],
+        "action": "Click",
+        "post_delay": 1000,
+        "next": ["claim_all_rewards"]
+    },
+    "claim_all_rewards": {
+        "recognition": "OCR",
+        "expected": "一键领取",
+        "roi": [980, 100, 200, 80],
+        "action": "Click",
+        "post_delay": 1000,
+        "next": ["claim_rewards_completed", "no_claimable_rewards"]
+    },
+    "claim_rewards_completed": {
+        "recognition": "OCR",
+        "expected": "已完成一键领取",
+        "roi": [350, 40, 600, 100],
+        "next": ["confirm_claimed_rewards"]
+    },
+    "confirm_claimed_rewards": {
+        "recognition": "OCR",
+        "expected": "确定",
+        "roi": [500, 550, 300, 120],
+        "action": "Click",
+        "post_delay": 1000,
+        "next": ["return_home_after_claim"]
+    },
+    "no_claimable_rewards": {
+        "recognition": "OCR",
+        "expected": "没有可领取的礼物。",
+        "roi": [400, 300, 500, 180],
+        "next": ["return_home_after_claim"]
+    },
+    "return_home_after_claim": {
+        "recognition": "TemplateMatch",
+        "template": "gift/back.png",
+        "action": "Click",
+        "post_delay": 1000,
+        "next": ["ClaimRewardsHome"]
+    },
+    "ClaimRewardsHome": {
+        "recognition": "TemplateMatch",
+        "template": "home/gift.png",
+        "roi": [1180, 210, 100, 90]
+    }
+}
