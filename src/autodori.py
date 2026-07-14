@@ -204,7 +204,9 @@ class InitializeRuntime(CustomAction):
             agent_session.bind(context)
             return CustomAction.RunResult(True)
         except Exception as e:
-            logging.error("Failed to initialize the Agent runtime: %s", e)
+            message = f"AutoLive cannot start: {e}"
+            logging.error(message)
+            print(f"error: {message}", flush=True)
             return CustomAction.RunResult(False)
 
 
