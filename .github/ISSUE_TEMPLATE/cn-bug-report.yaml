@@ -64,10 +64,10 @@ body:
     attributes:
       label: 截图或录屏（如有）
       description: |
-        `debug` 目录下按功能分类的文件夹内，有一些自动截图的错误图片，若有相关的，请一并打包上传
+        `.autodori-agent-data/debug` 目录下包含 Agent 日志和调试文件；若与问题相关，请一并打包上传。
 
         可上传屏幕截图或录制以帮助解释你的问题，包括但不限于 autodori 软件截图、游戏画面截图、
-        autodori debug 截图（`debug/vision` 路径图片，在修改 `config/maa_option.json` 中 `save_draw` 为 `true` 后再次运行 autodori 获取）
+        autodori Agent 调试文件（`.autodori-agent-data/debug` 中的日志或转储文件）
         若是**识别相关问题**，请尽可能提供模拟器自带的截图工具截取的无遮挡的**原图**（或通过 adb 截取原图）
         用其他的工具（如QQ/微信）截取的图片包含窗口边框且长宽比、分辨率不固定，不利于我们排除bug
         若文件体积过大可压缩后再上传

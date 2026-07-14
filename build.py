@@ -71,7 +71,7 @@ def build_agent(project: Path, clean: bool) -> None:
         "maa",
         "--collect-all",
         "MaaAgentBinary",
-        str(ROOT / "src" / "autodori.py"),
+        str(ROOT / "src" / "agent.py"),
     ]
     if clean:
         command.insert(4, "--clean")

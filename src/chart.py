@@ -1,7 +1,6 @@
 import json
 import logging
 import time
-from pathlib import Path
 
 from minitouchpy import CommandBuilder
 from peewee import *
@@ -9,12 +8,16 @@ from playhouse.sqlite_ext import JSONField
 
 import util
 from api import BestdoriAPI
+from paths import DATA_PATH, DEBUG_PATH, ensure_agent_data_directories
 import yaml
+
+
+ensure_agent_data_directories()
 
 
 class PlayRecord(Model):
     class Meta:
-        database = SqliteDatabase("data/play_records.db")
+        database = SqliteDatabase(DATA_PATH / "play_records.db")
 
     play_time = TimestampField()
     play_offset = JSONField()
@@ -454,7 +457,7 @@ class Chart:
         self.actions_to_cmd_index += size
 
     def dump_debug_config(self):
-        dump_path = Path("debug/dump")
+        dump_path = DEBUG_PATH / "dump"
         dump_path.mkdir(parents=True, exist_ok=True)
         (
             dump_path / f"{self._song_name}-{self._difficulty}-{time.time()}.yml"

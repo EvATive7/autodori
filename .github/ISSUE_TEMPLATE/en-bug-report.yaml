@@ -79,14 +79,13 @@ body:
     attributes:
       label: Screenshot or screen recording (if any)
       description: >-
-        In the `debug` directory, within the functionally categorized folders, 
-        there are some error images captured automatically.
-        If related to this issue, please upload them together.
+        The `.autodori-agent-data/debug` directory contains Agent logs and
+        debug files. If they are related to this issue, please upload them together.
 
         If available, upload screenshots and recordings to help explain your problem,
         including but not limited to screenshots of autodori software,
-        screenshots of game screens, autodori debug screenshots (`debug/vision` path pictures,
-        after modifying `save_draw` in `config/maa_option.json` to `true`, run autodori again to obtain)
+        screenshots of game screens, autodori Agent debug files
+        (logs or dumps from `.autodori-agent-data/debug`)
 
         If the problem is **recognition related**, please help by providing
         the **original image** taken by the emulator's own screenshot tool

@@ -11,11 +11,9 @@ import time
 from pathlib import Path
 from typing import Optional, Union
 
-data_path = Path("data")
-data_path.mkdir(exist_ok=True)
-cache_path = Path("cache")
-cache_path.mkdir(exist_ok=True)
-Path("debug").mkdir(exist_ok=True)
+from paths import DEBUG_PATH, ensure_agent_data_directories
+
+ensure_agent_data_directories()
 
 runtime_root = Path(getattr(sys, "_MEIPASS", Path(__file__).resolve().parent.parent))
 
@@ -668,7 +666,8 @@ def configure_log():
         handlers=[
             logging.StreamHandler(),
             logging.FileHandler(
-                "debug/autodori-{}.log".format(
+                DEBUG_PATH
+                / "autodori-{}.log".format(
                     datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
                 ),
                 mode="w",

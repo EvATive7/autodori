@@ -3,12 +3,16 @@ import requests
 from diskcache import Cache
 from urllib3.util.retry import Retry
 from requests.adapters import HTTPAdapter
+from paths import CACHE_PATH, ensure_agent_data_directories
+
+
+ensure_agent_data_directories()
 
 
 class BestdoriAPI:
     base = "https://bestdori.com/api"
     _logger = logging.getLogger("BestdoriAPI")
-    _cache = Cache("cache")
+    _cache = Cache(CACHE_PATH)
     _session = requests.Session()
     _adapter = HTTPAdapter(
         max_retries=Retry(

@@ -1,7 +1,5 @@
 resource/minitouch/
-cache/
-data/
-config/
+.autodori-agent-data/
 assets/minitouch_EvATive7/
 !assets/minitouch_EvATive7/.gitkeep
 assets/build_metadata.json
