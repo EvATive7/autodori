@@ -3,7 +3,8 @@
   "name": "autodori",
   "label": "$project_name",
   "version": "1.0.21",
-  "url": "https://github.com/evati0nal/autodori",
+  "custom_title": "autodori",
+  "url": "https://github.com/EvATive7/autodori",
   "languages": {
     "zh_cn": "interface_zh_cn.json",
     "en_us": "interface_en_us.json"

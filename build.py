@@ -1,5 +1,6 @@
 import argparse
 import hashlib
+import json
 import os
 import shutil
 import site
@@ -34,6 +35,8 @@ def package_path(name: str) -> Path:
 
 def copy_project_files(project: Path) -> None:
     shutil.copy2(ASSETS / "interface.json", project / "interface.json")
+    for language_file in ASSETS.glob("interface_*.json"):
+        shutil.copy2(language_file, project / language_file.name)
     shutil.copytree(RESOURCE, project / "resource")
 
 
@@ -103,10 +106,20 @@ def publish_gui(project: Path, output: Path) -> None:
     shutil.copytree(project, output, dirs_exist_ok=True)
 
 
+def project_version() -> str:
+    with (ASSETS / "interface.json").open(encoding="utf-8") as interface_file:
+        version = json.load(interface_file).get("version")
+    if not isinstance(version, str) or not version:
+        raise RuntimeError("assets/interface.json must define a non-empty version")
+    return version
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="Build the autodori MFA package")
     parser.add_argument("--output", type=Path, default=DEFAULT_OUTPUT)
     parser.add_argument("--without-gui", action="store_true")
+    parser.add_argument("--version", default=project_version())
+    parser.add_argument("--arch", default="win-x64")
     args = parser.parse_args()
 
     output = args.output.resolve()
@@ -126,7 +139,17 @@ def main() -> None:
     else:
         publish_gui(project, output)
 
+    archive_name = f"autodori-{args.version}-{args.arch}"
+    archive = Path(
+        shutil.make_archive(
+            str(output.parent / archive_name),
+            "zip",
+            root_dir=output.parent,
+            base_dir=output.name,
+        )
+    )
     print(f"MFA project package created: {output}")
+    print(f"MFA project archive created: {archive}")
 
 
 if __name__ == "__main__":

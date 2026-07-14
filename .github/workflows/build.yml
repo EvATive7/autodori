@@ -2,26 +2,104 @@ name: Build and Release
 
 on:
   push:
-    tags:
-      - "v*"
+    branches:
+      - main
+    paths:
+      - assets/interface.json
   workflow_dispatch:
 
+permissions:
+  contents: write
+
+concurrency:
+  group: release-main
+  cancel-in-progress: false
+
 jobs:
-  build:
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [windows-2022]
+  prepare-release:
+    runs-on: windows-2022
+    outputs:
+      should_release: ${{ steps.release.outputs.should_release }}
+      version: ${{ steps.release.outputs.version }}
+      tag: ${{ steps.release.outputs.tag }}
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
-          submodules: true
           fetch-depth: 0
 
+      - name: Compare the interface version
+        id: release
+        shell: pwsh
+        run: |
+          $shouldRelease = $true
+          if ("${{ github.event_name }}" -eq "push") {
+            $before = "${{ github.event.before }}"
+            if ($before -and $before -notmatch '^0+$') {
+              $shouldRelease = (git diff --name-only $before ${{ github.sha }} -- assets/interface.json) -contains "assets/interface.json"
+            }
+          }
+
+          if (-not $shouldRelease) {
+            "should_release=false" >> $env:GITHUB_OUTPUT
+            exit 0
+          }
+
+          $version = (Get-Content assets/interface.json -Raw | ConvertFrom-Json).version
+          if ($version -notmatch '^\d+\.\d+\.\d+$') {
+            throw "assets/interface.json version must use major.minor.patch format"
+          }
+
+          $latestTag = git tag --list "v*" --sort=-version:refname | Select-Object -First 1
+          if ($latestTag) {
+            $latestVersion = $latestTag.Substring(1)
+            if ($latestVersion -notmatch '^\d+\.\d+\.\d+$') {
+              throw "Latest release tag $latestTag must use v<major.minor.patch> format"
+            }
+
+            $versionParts = $version.Split('.') | ForEach-Object { [int] $_ }
+            $latestParts = $latestVersion.Split('.') | ForEach-Object { [int] $_ }
+            for ($index = 0; $index -lt 3; $index++) {
+              if ($versionParts[$index] -gt $latestParts[$index]) { break }
+              if ($versionParts[$index] -lt $latestParts[$index]) {
+                $shouldRelease = $false
+                break
+              }
+            }
+
+            if ($version -eq $latestVersion) {
+              $shouldRelease = $false
+            }
+          }
+
+          if (-not $shouldRelease) {
+            "should_release=false" >> $env:GITHUB_OUTPUT
+            exit 0
+          }
+
+          $tag = "v$version"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git tag --annotate $tag --message "Release $tag"
+          git push origin $tag
+          "should_release=true" >> $env:GITHUB_OUTPUT
+          "version=$version" >> $env:GITHUB_OUTPUT
+          "tag=$tag" >> $env:GITHUB_OUTPUT
+
+  build:
+    needs: prepare-release
+    if: needs.prepare-release.outputs.should_release == 'true'
+    runs-on: windows-2022
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: "3.11"
           cache: "pip"
@@ -29,28 +107,20 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt
+          python -m pip install .
+          python -m pip install pyinstaller
 
-      - name: Run build script
-        run: |
-          pip install pyinstaller
-          python build.py --os ${{ runner.os }} --arch ${{ runner.arch }} --version ${{ github.ref_name }}
+      - name: Build release package
+        run: python build.py
 
       - name: Upload build artifact
         uses: actions/upload-artifact@v4
         with:
-          name: build-${{ matrix.os }}
-          path: dist/**
-
-      - name: Generate Changelog
-        run: |
-          python -m pip install evative7-changeloggen
-          changelog .
+          name: autodori-${{ needs.prepare-release.outputs.version }}-win-x64
+          path: dist/autodori-${{ needs.prepare-release.outputs.version }}-win-x64.zip
 
       - name: Create Release
         uses: softprops/action-gh-release@v2
-        if: startsWith(github.ref, 'refs/tags/')
         with:
-          body_path: CHANGELOG.md
-          files: |
-            dist/**
+          tag_name: ${{ needs.prepare-release.outputs.tag }}
+          files: dist/autodori-${{ needs.prepare-release.outputs.version }}-win-x64.zip
