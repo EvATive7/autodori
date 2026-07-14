@@ -52,16 +52,15 @@ A BanG Dream! helper
 
 1. Download the latest version from [release](https://github.com/EvATive7/autodori/releases)  
 2. Extract, then run `autodori.exe`
-3. Run `autodori.exe -h` in command line to see more options
 
-### If you need to fine-tune parameters, modify code for higher score / testing, or development, run from source  
+### If you need to fine-tune parameters, modify code for higher scores, test, or develop, build and run from source
 
- 1. `git clone --recursive https://github.com/EvATive7/autodori`  
- 2. `cd autodori`  
- 3. `python -m venv .venv`  
- 4. `.venv\Scripts\activate`  
- 5. `pip install -r requirements.txt`
- 6. Run `python build.py` (`build.py` will automatically organize and download necessary dependencies)
+1. Install [uv](https://docs.astral.sh/uv/).
+2. `git clone --recursive https://github.com/EvATive7/autodori`
+3. `cd autodori`
+4. `uv sync --group build`
+5. `uv run python build.py`
+6. Run `dist\autodori\autodori.exe`.
 
 ## ⚠️ Notes
 
@@ -83,6 +82,7 @@ In addition to Python packages, this project directly includes, modifies, or dis
 
 - [minitouch ver.EvATive7](https://github.com/EvATive7/minitouch) (Apache License 2.0)
 - [MaaFramework](https://github.com/MaaXYZ/MaaFramework) (LGPLv3)
+- [MFAAvalonia](https://github.com/MaaXYZ/MFAAvalonia) (GPLv3)
 
 This project distributes the following proprietary dynamic link libraries. These are not part of the open source project and are not covered by the project license:
 

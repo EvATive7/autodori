@@ -51,16 +51,15 @@
 
 1. 从[release](https://github.com/EvATive7/autodori/releases)下载最新版  
 2. 解压，并运行`autodori.exe`
-3. 使用命令行`autodori.exe -h`可以查看更多选项
 
-### 如果你需要自行调参或修改代码来凹分 / 需要测试、开发，请从源码运行  
+### 如果你需要自行调参或修改代码来凹分 / 需要测试、开发，请从源码构建和运行
 
- 1. `git clone --recursive https://github.com/EvATive7/autodori`  
- 2. `cd autodori`  
- 3. `python -m venv .venv`  
- 4. `.venv\Scripts\activate`  
- 5. `pip install -r requirements.txt`
- 6. 执行`python build.py`（`build.py`会自动整理和下载必要的依赖项）
+1. 安装 [uv](https://docs.astral.sh/uv/)。
+2. `git clone --recursive https://github.com/EvATive7/autodori`
+3. `cd autodori`
+4. `uv sync --group build`
+5. `uv run python build.py`
+6. 运行 `dist\autodori\autodori.exe`。
 
 ## ⚠️ 注意
 
@@ -82,6 +81,7 @@
 
 - [minitouch ver.EvATive7](https://github.com/EvATive7/minitouch)（Apache License 2.0）
 - [MaaFramework](https://github.com/MaaXYZ/MaaFramework)（LGPLv3）
+- [MFAAvalonia](https://github.com/MaaXYZ/MFAAvalonia)（GPLv3）
 
 本项目分发了以下闭源动态链接库，这些动态链接库并非本项目的开源部分，也不受本项目许可证的约束：
 

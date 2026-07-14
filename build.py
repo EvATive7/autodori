@@ -1,9 +1,11 @@
 import argparse
+import ctypes
 import hashlib
 import json
 import os
 import shutil
 import site
+import struct
 import subprocess
 import sys
 import urllib.request
@@ -51,6 +53,91 @@ def copy_project_files(project: Path) -> None:
             format="ICO",
             sizes=[(256, 256), (128, 128), (64, 64), (48, 48), (32, 32), (16, 16)],
         )
+
+
+def embed_windows_icon(executable: Path, icon: Path) -> None:
+    if os.name != "nt":
+        return
+
+    icon_data = icon.read_bytes()
+    reserved, icon_type, count = struct.unpack_from("<HHH", icon_data)
+    if (reserved, icon_type) != (0, 1) or count == 0:
+        raise ValueError(f"Invalid ICO file: {icon}")
+
+    entries = []
+    for index in range(count):
+        width, height, colors, _, planes, bit_count, size, offset = struct.unpack_from(
+            "<BBBBHHII", icon_data, 6 + index * 16
+        )
+        image = icon_data[offset : offset + size]
+        if len(image) != size:
+            raise ValueError(f"Invalid ICO image data: {icon}")
+        entries.append((width, height, colors, planes, bit_count, image))
+
+    kernel32 = ctypes.WinDLL("kernel32", use_last_error=True)
+    kernel32.BeginUpdateResourceW.argtypes = [ctypes.c_wchar_p, ctypes.c_int]
+    kernel32.BeginUpdateResourceW.restype = ctypes.c_void_p
+    kernel32.UpdateResourceW.argtypes = [
+        ctypes.c_void_p,
+        ctypes.c_void_p,
+        ctypes.c_void_p,
+        ctypes.c_ushort,
+        ctypes.c_void_p,
+        ctypes.c_uint,
+    ]
+    kernel32.UpdateResourceW.restype = ctypes.c_int
+    kernel32.EndUpdateResourceW.argtypes = [ctypes.c_void_p, ctypes.c_int]
+    kernel32.EndUpdateResourceW.restype = ctypes.c_int
+
+    handle = kernel32.BeginUpdateResourceW(str(executable), False)
+    if not handle:
+        raise ctypes.WinError(ctypes.get_last_error())
+
+    try:
+        group = bytearray(struct.pack("<HHH", 0, 1, len(entries)))
+        for resource_id, (width, height, colors, planes, bit_count, image) in enumerate(
+            entries, 1
+        ):
+            image_buffer = ctypes.create_string_buffer(image)
+            if not kernel32.UpdateResourceW(
+                handle,
+                ctypes.c_void_p(3),
+                ctypes.c_void_p(resource_id),
+                0,
+                image_buffer,
+                len(image),
+            ):
+                raise ctypes.WinError(ctypes.get_last_error())
+            group.extend(
+                struct.pack(
+                    "<BBBBHHIH",
+                    width,
+                    height,
+                    colors,
+                    0,
+                    planes,
+                    bit_count,
+                    len(image),
+                    resource_id,
+                )
+            )
+
+        group_buffer = ctypes.create_string_buffer(bytes(group))
+        if not kernel32.UpdateResourceW(
+            handle,
+            ctypes.c_void_p(14),
+            ctypes.c_void_p(1),
+            0,
+            group_buffer,
+            len(group),
+        ):
+            raise ctypes.WinError(ctypes.get_last_error())
+    except Exception:
+        kernel32.EndUpdateResourceW(handle, True)
+        raise
+
+    if not kernel32.EndUpdateResourceW(handle, False):
+        raise ctypes.WinError(ctypes.get_last_error())
 
 
 def build_agent(project: Path, clean: bool) -> None:
@@ -124,6 +211,11 @@ def publish_gui(project: Path, output: Path) -> None:
     archive = BUILD / f"MFAAvalonia-{MFA_VERSION}-win-x64.zip"
     download_mfa_archive(archive)
     extract_mfa_archive(archive, output)
+    launcher = output / "MFAAvalonia.exe"
+    if not launcher.is_file():
+        raise FileNotFoundError(f"MFAAvalonia launcher is missing: {launcher}")
+    launcher = launcher.rename(output / "autodori.exe")
+    embed_windows_icon(launcher, project / "Assets" / "logo.ico")
     shutil.copytree(project, output, dirs_exist_ok=True)
 
 
