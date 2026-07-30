@@ -4,7 +4,7 @@ FUZZYSONGNAME = "寄る辺のSunny,Sunny"
 
 autodori.DIFFICULTY = "expert"
 autodori.OFFSET = {"up": 0, "down": 0, "move": 0, "wait": 0.0, "interval": 0.0}
-autodori.PHOTOGATE_LATENCY = 30
+autodori.DEFAULT_PHOTOGATE_LATENCY = 30
 autodori.DEFAULT_MOVE_SLICE_SIZE = 20
 autodori.CMD_SLICE_SIZE = 100
 

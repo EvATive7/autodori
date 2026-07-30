@@ -46,13 +46,14 @@ from minitouchpy import (
 import player
 from api import BestdoriAPI
 from chart import Chart, PlayRecord
+from latency import load_offsets, save_offset, get_offset
 from util import *
 
 MIN_LIVEBOOST = 1
 LIVEMODE = "freelive"
 DIFFICULTY = "hard"
 OFFSET = {"up": 0, "down": 0, "move": 0, "wait": 0.0, "interval": 0.0}
-PHOTOGATE_LATENCY = 30
+DEFAULT_PHOTOGATE_LATENCY = 50
 DEFAULT_MOVE_SLICE_SIZE = 10
 MAX_FAILED_TIMES = 10
 CMD_SLICE_SIZE = 100
@@ -73,6 +74,7 @@ all_song_name_indexes: dict[str, str] = {
 current_song_name: str = None
 current_song_id: str = None
 current_chart: Chart = None
+current_latency = 0
 play_failed_times: int = 0
 callback_data: dict = {}
 callback_data_lock = threading.Lock()
@@ -269,12 +271,27 @@ class PlayResultRecognition(CustomRecognition):
 class SavePlayResult(CustomAction):
     def run(self, context: Context, argv: CustomAction.RunArg):
         try:
-            global current_song_id, play_failed_times
+            global current_song_id, current_latency, play_failed_times
             succeed: bool = json.loads(argv.custom_action_param).get("succeed")
             if succeed:
                 playresult = argv.reco_detail.best_result.detail
                 if isinstance(playresult, str):
                     playresult = json.loads(argv.reco_detail.best_result.detail)
+                fast = playresult.get("fast", 0)
+                slow = playresult.get("slow", 0)
+                if fast > slow:
+                    new_latency = current_latency + 10
+                elif slow > fast:
+                    new_latency = current_latency - 10
+                else:
+                    new_latency = current_latency
+                new_latency = max(-DEFAULT_PHOTOGATE_LATENCY, min(80, new_latency))
+                if new_latency != current_latency:
+                    save_offset(current_song_id, DIFFICULTY, new_latency)
+                    current_latency = new_latency
+                    logging.info(f"Adjusted latency for {current_song_id}_{DIFFICULTY} to {new_latency}ms")
+                else:
+                    logging.debug("Latency unchanged.")
             else:
                 play_failed_times += 1
                 playresult = {}
@@ -350,7 +367,7 @@ def _get_orientation():
 
 
 def save_song(name):
-    global current_song_name, current_song_id, current_chart, current_orientation
+    global current_song_name, current_song_id, current_chart, current_orientation, current_latency
     current_song_name = name
     current_song_id = all_song_name_indexes[current_song_name]
     current_chart = Chart((current_song_id, DIFFICULTY), current_song_name)
@@ -359,6 +376,8 @@ def save_song(name):
     current_chart.actions_to_MNTcmd(
         (mnt.max_x, mnt.max_y), current_orientation, OFFSET, CMD_SLICE_SIZE
     )
+    current_latency = get_offset(current_song_id, DIFFICULTY)
+    logging.debug(f"Loaded latency for {name}({DIFFICULTY}): {current_latency}ms")
     logging.debug("Save song: {}".format(name))
 
 
@@ -429,7 +448,7 @@ def wait_first_note():
                         logging.debug(
                             f"The first note falls between {from_row}-{to_row}"
                         )
-                        time.sleep(PHOTOGATE_LATENCY / 1000)
+                        time.sleep(max(0, (DEFAULT_PHOTOGATE_LATENCY + current_latency) / 1000))
                         break
                 else:
                     if not freezed:
@@ -679,6 +698,8 @@ def check_update():
 
 def main():
     configure_log()
+
+    load_offsets()
 
     parser = argparse.ArgumentParser(
         description="AutoDori script with different modes."
