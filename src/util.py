@@ -28,8 +28,8 @@ def get_runtime_info(resolution: tuple[int, int]):
             "h": get_rounded_int_y(590),
         },
         "wait_first": {
-            "from": get_rounded_int_y(510),
-            "to": get_rounded_int_y(535),
+            "from": get_rounded_int_y(450),
+            "to": get_rounded_int_y(475),
         },
     }
 
