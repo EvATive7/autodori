@@ -7,7 +7,8 @@
   "url": "https://github.com/EvATive7/autodori",
   "languages": {
     "zh_cn": "interface_zh_cn.json",
-    "en_us": "interface_en_us.json"
+    "en_us": "interface_en_us.json",
+    "ja_jp": "interface_ja_jp.json"
   },
   "resource": [
     {

@@ -4,7 +4,7 @@
 
 # autodori  
 
-邦多利小助手 | 📘 [English Version](./README.en.md)
+邦多利小助手 | [English](./README.en.md) | [日本語](./README.ja.md)
 
 ![Pipeline](https://img.shields.io/badge/Pipeline-%23454545?logo=paddypower&logoColor=%23FFFFFF)  ![python](https://img.shields.io/badge/Python-3776AB?logo=python&logoColor=white)  [![License](https://img.shields.io/github/license/MaaXYZ/MFAAvalonia?color=4a90d9)](./LICENSE)  
 
