@@ -18,6 +18,10 @@ from PIL import Image
 ROOT = Path(__file__).resolve().parent
 ASSETS = ROOT / "assets"
 RESOURCE = ASSETS / "resource"
+COMMON_ASSETS = ASSETS / "MaaCommonAssets"
+OCR_MODEL_SOURCE = COMMON_ASSETS / "OCR" / "ppocr_v6" / "small"
+OCR_MODEL_NAME = "ocr"
+MINITOUCH_ASSETS = ASSETS / "minitouch_EvATive7"
 GUI_LOGO = ROOT / "docs" / "logo.png"
 BUILD = ROOT / "build" / "agent"
 DIST = ROOT / "dist"
@@ -28,6 +32,20 @@ MFA_ARCHIVE_URL = (
     f"{MFA_VERSION}/MFAAvalonia-{MFA_VERSION}-win-x64.zip"
 )
 MFA_ARCHIVE_SHA256 = "7b649c9e093f61567ae117b0825a62d912895c99ad59445c7fa37e6e5411e3bb"
+MINITOUCH_VERSION = "v2.0.0"
+MINITOUCH_ARCHIVE_URL = (
+    "https://github.com/EvATive7/minitouch/releases/download/"
+    f"{MINITOUCH_VERSION}/minitouch.zip"
+)
+MINITOUCH_ARCHIVE_SHA256 = "4bed7a1628bc1272f1835bc4f1522868e6956846c8120a8d76a0ee0aa389e549"
+MINITOUCH_ARCHIVE = BUILD / "minitouch.zip"
+MINITOUCH_ARCHITECTURES = (
+    "arm64-v8a",
+    "armeabi-v7a",
+    "riscv64",
+    "x86",
+    "x86_64",
+)
 
 
 def package_path(name: str) -> Path:
@@ -38,11 +56,110 @@ def package_path(name: str) -> Path:
     raise FileNotFoundError(f"Python package data directory not found: {name}")
 
 
+def file_sha256(path: Path) -> str:
+    with path.open("rb") as file:
+        return hashlib.file_digest(file, "sha256").hexdigest()
+
+
+def download_cached_archive(
+    destination: Path,
+    url: str,
+    expected_sha256: str | None = None,
+) -> Path:
+    if destination.is_file():
+        if expected_sha256 is None or file_sha256(destination) == expected_sha256:
+            return destination
+        destination.unlink()
+
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    temporary = destination.with_name(f"{destination.name}.part")
+    temporary.unlink(missing_ok=True)
+    request = urllib.request.Request(url, headers={"User-Agent": "autodori-build"})
+    try:
+        with urllib.request.urlopen(request) as response, temporary.open("wb") as output:
+            shutil.copyfileobj(response, output)
+
+        if expected_sha256 is not None:
+            digest = file_sha256(temporary)
+            if digest != expected_sha256:
+                raise RuntimeError(f"Archive checksum mismatch: {digest}")
+        temporary.replace(destination)
+    finally:
+        temporary.unlink(missing_ok=True)
+    return destination
+
+
+def extract_archive(archive: Path, destination: Path) -> None:
+    with zipfile.ZipFile(archive) as bundle:
+        destination_root = destination.resolve()
+        for member in bundle.infolist():
+            member_path = (destination_root / member.filename).resolve()
+            if not member_path.is_relative_to(destination_root):
+                raise RuntimeError(f"Archive has an invalid member: {member.filename}")
+        bundle.extractall(destination)
+
+
+def sync_ocr_model(project: Path) -> None:
+    if not OCR_MODEL_SOURCE.is_dir():
+        raise FileNotFoundError(f"OCR model source is missing: {OCR_MODEL_SOURCE}")
+
+    destination = project / "resource" / "model" / OCR_MODEL_NAME
+    if destination.exists():
+        shutil.rmtree(destination)
+    shutil.copytree(
+        OCR_MODEL_SOURCE,
+        destination,
+        ignore=shutil.ignore_patterns("README.md"),
+    )
+
+
+def minitouch_assets_ready() -> bool:
+    return all(
+        (MINITOUCH_ASSETS / architecture / filename).is_file()
+        for architecture in MINITOUCH_ARCHITECTURES
+        for filename in ("minitouch", "minitouch-nopie")
+    )
+
+
+def prepare_minitouch() -> Path:
+    if minitouch_assets_ready():
+        return MINITOUCH_ASSETS
+
+    if MINITOUCH_ARCHIVE.exists():
+        try:
+            with zipfile.ZipFile(MINITOUCH_ARCHIVE) as archive:
+                if archive.testzip() is not None:
+                    raise zipfile.BadZipFile("minitouch archive failed CRC validation")
+        except (OSError, zipfile.BadZipFile):
+            MINITOUCH_ARCHIVE.unlink()
+
+    archive = download_cached_archive(
+        MINITOUCH_ARCHIVE,
+        MINITOUCH_ARCHIVE_URL,
+        MINITOUCH_ARCHIVE_SHA256,
+    )
+    extraction = BUILD / "minitouch-extracted"
+    if extraction.exists():
+        shutil.rmtree(extraction)
+    extract_archive(archive, extraction)
+
+    source = extraction / "minitouch"
+    if not source.is_dir():
+        raise RuntimeError("minitouch archive does not contain a minitouch directory")
+    if MINITOUCH_ASSETS.exists():
+        shutil.rmtree(MINITOUCH_ASSETS)
+    shutil.copytree(source, MINITOUCH_ASSETS)
+    if not minitouch_assets_ready():
+        raise RuntimeError("Downloaded minitouch assets are incomplete")
+    return MINITOUCH_ASSETS
+
+
 def copy_project_files(project: Path) -> None:
     shutil.copy2(ASSETS / "interface.json", project / "interface.json")
     for language_file in ASSETS.glob("interface_*.json"):
         shutil.copy2(language_file, project / language_file.name)
     shutil.copytree(RESOURCE, project / "resource")
+    sync_ocr_model(project)
     if not GUI_LOGO.is_file():
         raise FileNotFoundError(f"GUI logo is missing: {GUI_LOGO}")
     icon_path = project / "Assets" / "logo.ico"
@@ -143,9 +260,7 @@ def embed_windows_icon(executable: Path, icon: Path) -> None:
 def build_agent(project: Path, clean: bool) -> None:
     maa_bin = package_path("maa") / "bin"
     agent_binary = package_path("MaaAgentBinary")
-    minitouch = ASSETS / "minitouch_EvATive7"
-    if not minitouch.exists():
-        raise FileNotFoundError("minitouch assets are missing")
+    minitouch = prepare_minitouch()
 
     command = [
         sys.executable,
@@ -179,38 +294,10 @@ def build_agent(project: Path, clean: bool) -> None:
     shutil.copy2(BUILD / "dist" / "autodori-agent.exe", project / "agent" / "autodori-agent.exe")
 
 
-def download_mfa_archive(destination: Path) -> None:
-    if destination.exists():
-        with destination.open("rb") as archive:
-            digest = hashlib.file_digest(archive, "sha256").hexdigest()
-        if digest == MFA_ARCHIVE_SHA256:
-            return
-        destination.unlink()
-
-    request = urllib.request.Request(MFA_ARCHIVE_URL, headers={"User-Agent": "autodori-build"})
-    with urllib.request.urlopen(request) as response, destination.open("wb") as output:
-        shutil.copyfileobj(response, output)
-
-    with destination.open("rb") as archive:
-        digest = hashlib.file_digest(archive, "sha256").hexdigest()
-    if digest != MFA_ARCHIVE_SHA256:
-        raise RuntimeError(f"MFAAvalonia archive checksum mismatch: {digest}")
-
-
-def extract_mfa_archive(archive: Path, destination: Path) -> None:
-    with zipfile.ZipFile(archive) as bundle:
-        destination_root = destination.resolve()
-        for member in bundle.infolist():
-            member_path = (destination_root / member.filename).resolve()
-            if not member_path.is_relative_to(destination_root):
-                raise RuntimeError(f"MFAAvalonia archive has an invalid member: {member.filename}")
-        bundle.extractall(destination)
-
-
 def publish_gui(project: Path, output: Path) -> None:
     archive = BUILD / f"MFAAvalonia-{MFA_VERSION}-win-x64.zip"
-    download_mfa_archive(archive)
-    extract_mfa_archive(archive, output)
+    download_cached_archive(archive, MFA_ARCHIVE_URL, MFA_ARCHIVE_SHA256)
+    extract_archive(archive, output)
     launcher = output / "MFAAvalonia.exe"
     if not launcher.is_file():
         raise FileNotFoundError(f"MFAAvalonia launcher is missing: {launcher}")

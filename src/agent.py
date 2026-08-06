@@ -253,7 +253,7 @@ class SongRecognition(CustomRecognition):
 
         roi = [200, 332, 368, 29]
 
-        def match(model=None):
+        def match():
             pplname = "_ocrsong_" + "".join(random.choices(string.ascii_lowercase, k=7))
             pipeline = {
                 pplname: {
@@ -262,8 +262,6 @@ class SongRecognition(CustomRecognition):
                     "roi": roi,
                 },
             }
-            if model != None:
-                pipeline[pplname]["model"] = model
             try:
                 song_fuzzyname = context.run_recognition(
                     pplname,
@@ -274,17 +272,11 @@ class SongRecognition(CustomRecognition):
                 song_fuzzyname = ""
             return fuzzy_match_song(song_fuzzyname)
 
-        jpmatch = match("ppocr_v3/ja_jp")
-        commonmatch = match()  # , "ppocr_v4/zh_cn")
-        logging.debug(
-            "Match result with ppocr_v3/ja_jp: {}, Match result with default: {}".format(
-                jpmatch, commonmatch
-            )
-        )
-        result = sorted([jpmatch, commonmatch], key=lambda x: x[1], reverse=True)
-        if all([r[1] < 50 for r in result]):
+        result = match()
+        logging.debug("Match result with default: %s", result)
+        if result[1] < 50:
             return CustomRecognition.AnalyzeResult(None, "")
-        result_music_name = result[0][0]
+        result_music_name = result[0]
 
         params = json.loads(argv.custom_recognition_param or "{}")
         global current_difficulty
