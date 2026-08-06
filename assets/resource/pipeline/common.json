@@ -6,7 +6,12 @@
     },
     "CloseGame": {
         "action": "StopApp",
-        "package": "com.bilibili.star.bili"
+        "package": "com.bilibili.star.bili",
+        "focus": {
+            "Node.Action.Starting": "$log_game_closing",
+            "Node.Action.Succeeded": "$log_game_closed",
+            "Node.Action.Failed": "$log_game_close_failed"
+        }
     },
     "close_button": {
         "recognition": "TemplateMatch",
@@ -116,6 +121,9 @@
     "login_expired": {
         "recognition": "OCR",
         "expected": "登录已失效",
+        "focus": {
+            "Node.Recognition.Succeeded": "$log_login_expired"
+        },
         "action": "StopTask",
         "next": [
             "backtitle_button"
@@ -124,11 +132,17 @@
     "connect_failed": {
         "recognition": "OCR",
         "expected": "连接失败",
+        "focus": {
+            "Node.Recognition.Succeeded": "$log_connection_failed"
+        },
         "next": [
             "retry_button"
         ]
     },
     "stop": {
-        "action": "StopTask"
+        "action": "StopTask",
+        "focus": {
+            "Node.Action.Starting": "$log_task_stopped"
+        }
     }
 }

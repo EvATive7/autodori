@@ -2,6 +2,11 @@
     "LaunchGame": {
         "action": "StartApp",
         "package": "com.bilibili.star.bili",
+        "focus": {
+            "Node.Action.Starting": "$log_game_launching",
+            "Node.Action.Succeeded": "$log_game_launched",
+            "Node.Action.Failed": "$log_game_launch_failed"
+        },
         "next": [
             "find_startpage_menu",
             "LaunchGameReady",
@@ -81,6 +86,9 @@
     "LaunchGameReady": {
         "recognition": "TemplateMatch",
         "template": "live/button/live_home.png",
+        "focus": {
+            "Node.Recognition.Succeeded": "$log_game_ready"
+        },
         "roi": [
             1042,
             543,

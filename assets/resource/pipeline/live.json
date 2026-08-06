@@ -5,6 +5,11 @@
     "InitializeRuntime": {
         "action": "Custom",
         "custom_action": "InitializeRuntime",
+        "focus": {
+            "Node.Action.Starting": "$log_autolive_initializing",
+            "Node.Action.Succeeded": "$log_autolive_started",
+            "Node.Action.Failed": "$log_autolive_start_failed"
+        },
         "next": [
             "select_song",
             "select_live_mode",
@@ -16,6 +21,9 @@
         "recognition": "TemplateMatch",
         "template": "live/button/live_home.png",
         "action": "Click",
+        "focus": {
+            "Node.Action.Succeeded": "$log_live_home_ready"
+        },
         "post_delay": 1500,
         "next": [
             "return_to_main_after_limit",
@@ -29,6 +37,9 @@
     "return_to_main_after_limit": {
         "recognition": "Custom",
         "custom_recognition": "LiveLimitReached",
+        "focus": {
+            "Node.Recognition.Succeeded": "$log_live_limit_reached"
+        },
         "next": ["to_tome"]
     },
     "select_live_mode": {
@@ -36,6 +47,9 @@
         "expected": "自由演出",
         "roi": [679, 183, 257, 354],
         "action": "Click",
+        "focus": {
+            "Node.Action.Succeeded": "$log_live_mode_selected"
+        },
         "post_delay": 1000,
         "next": [
             "select_song",
@@ -50,6 +64,9 @@
         "expected": [
             "选择乐曲"
         ],
+        "focus": {
+            "Node.Recognition.Succeeded": "$log_song_selection_ready"
+        },
         "next": [
             "random_choice_song",
             "set_difficulty",
@@ -63,6 +80,9 @@
         "recognition": "TemplateMatch",
         "template": "live/button/random_choice_song.png",
         "action": "Click",
+        "focus": {
+            "Node.Action.Succeeded": "$log_song_randomized"
+        },
         "post_delay": 2000,
         "next": [
             "set_difficulty",
@@ -80,6 +100,9 @@
             "difficulty": "hard"
         },
         "custom_action": "SaveSong",
+        "focus": {
+            "Node.Action.Succeeded": "$log_song_identified"
+        },
         "next": [
             "comfirm_song",
             "[JumpBack]confirm_button"
@@ -97,7 +120,10 @@
             "[JumpBack]random_choice_song"
         ],
         "target": [886, 494, 105, 97],
-        "timeout": 5000
+        "timeout": 5000,
+        "focus": {
+            "Node.Action.Succeeded": "$log_difficulty_selected"
+        }
     },
     "comfirm_song": {
         "recognition": "OCR",
@@ -109,6 +135,9 @@
             "ensure_liveboost"
         ],
         "timeout": 3000,
+        "focus": {
+            "Node.Recognition.Succeeded": "$log_team_confirmation_ready"
+        },
         "on_error": [
             "close_app"
         ]
@@ -119,6 +148,9 @@
             "自由演出",
             "挑战演出"
         ],
+        "focus": {
+            "Node.Recognition.Succeeded": "$log_live_settings_ready"
+        },
         "roi": [
             122,
             19,
@@ -142,6 +174,9 @@
     "ensure_liveboost": {
         "recognition": "Custom",
         "custom_recognition": "LiveBoostEnoughRecognition",
+        "focus": {
+            "Node.Recognition.Succeeded": "$log_liveboost_checked"
+        },
         "action": "Custom",
         "custom_action": "HandleLiveBoost",
         "custom_action_param": {
@@ -156,6 +191,9 @@
         "recognition": "TemplateMatch",
         "template": "live/button/liveboost_settings.png",
         "action": "Click",
+        "focus": {
+            "Node.Action.Succeeded": "$log_liveboost_settings_opened"
+        },
         "post_delay": 500,
         "next": [
             "select_liveboost_consumption",
@@ -175,6 +213,9 @@
         },
         "action": "Custom",
         "custom_action": "ApplyLiveBoostConsumption",
+        "focus": {
+            "Node.Action.Succeeded": "$log_liveboost_consumption_applied"
+        },
         "post_delay": 300,
         "next": [
             "confirm_liveboost_settings",
@@ -186,6 +227,9 @@
         "expected": "OK",
         "roi": [520, 605, 224, 70],
         "action": "Click",
+        "focus": {
+            "Node.Action.Succeeded": "$log_liveboost_settings_confirmed"
+        },
         "post_delay": 500,
         "next": [
             "ensure_live_mode",
@@ -199,7 +243,10 @@
             631,
             33,
             35
-        ]
+        ],
+        "focus": {
+            "Node.Action.Succeeded": "$log_liveplay_mode_switched"
+        }
     },
     "disable_liveplay": {
         "recognition": "TemplateMatch",
@@ -208,6 +255,9 @@
             "live/button/liveplay_mv.png"
         ],
         "inverse": true,
+        "focus": {
+            "Node.Recognition.Succeeded": "$log_liveplay_mode_ready"
+        },
         "next": ["startlive"],
         "roi": [
             58,
@@ -220,6 +270,11 @@
         "action": "Click",
         "recognition": "TemplateMatch",
         "template": "live/button/startlive.png",
+        "focus": {
+            "Node.Action.Starting": "$log_live_starting",
+            "Node.Action.Succeeded": "$log_live_start_clicked",
+            "Node.Action.Failed": "$log_live_start_failed"
+        },
         "next": [
             "wait_live_start",
             "[JumpBack]startlive",
@@ -232,11 +287,19 @@
     "wait_live_start": {
         "recognition": "TemplateMatch",
         "template": "live/button/pause.png",
+        "focus": {
+            "Node.Recognition.Succeeded": "$log_live_started"
+        },
         "next": ["playsong"]
     },
     "playsong": {
         "action": "Custom",
         "custom_action": "Play",
+        "focus": {
+            "Node.Action.Starting": "$log_playing_song",
+            "Node.Action.Succeeded": "$log_song_played",
+            "Node.Action.Failed": "$log_song_play_failed"
+        },
         "next": [
             "wait_playresult",
             "[JumpBack]live_failed",
@@ -281,6 +344,9 @@
         "custom_recognition": "PlayResultRecognition",
         "action": "Custom",
         "custom_action": "SavePlayResult",
+        "focus": {
+            "Node.Action.Succeeded": "$log_live_result_saved"
+        },
         "custom_action_param": {
             "succeed": true
         },
@@ -303,6 +369,9 @@
     "live_failed": {
         "recognition": "OCR",
         "expected": "演出失败",
+        "focus": {
+            "Node.Recognition.Succeeded": "$log_live_failed"
+        },
         "roi": [
             256,
             227,
@@ -319,6 +388,9 @@
     "save_failed_playresult": {
         "action": "Custom",
         "custom_action": "SavePlayResult",
+        "focus": {
+            "Node.Action.Succeeded": "$log_failed_live_result_saved"
+        },
         "custom_action_param": {
             "succeed": false
         },
