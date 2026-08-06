@@ -334,8 +334,8 @@ class HandleLiveBoost(CustomAction):
         agent_session.bind(context)
         liveboost = int(decode_agent_value(argv.reco_detail.best_result.detail))
         params = json.loads(argv.custom_action_param or "{}")
-        minimum = int(decode_agent_value(params.get("minimum", 1)))
-        if liveboost < minimum:
+        minimum = int(decode_agent_value(params.get("minimum", 0)))
+        if minimum > 0 and liveboost < minimum:
             logging.debug("Live boost not enough, ready to exit")
             context.run_action("close_app")
             context.run_action("stop")

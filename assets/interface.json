@@ -42,8 +42,7 @@
       "option": [
         {"name": "Difficulty"},
         {"name": "LiveMode"},
-        {"name": "UnlimitedLive"},
-        {"name": "MinimumLiveBoost"}
+        {"name": "LiveLimits"}
       ]
     },
     {
@@ -81,16 +80,24 @@
         {"name": "ChallengeLive", "label": "$live_mode_challenge", "pipeline_override": {"select_live_mode": {"recognition": "OCR", "expected": "挑战演出", "roi": [679, 183, 257, 354], "action": "Click", "post_delay": 1000, "next": ["select_song", "select_live_mode", "live_home_button", "[JumpBack]login_expired", "[JumpBack]connect_failed"]}}}
       ]
     },
-    "UnlimitedLive": {
-      "type": "switch",
-      "label": "$option_unlimited_live",
-      "default_case": "Yes",
+    "LiveLimits": {
+      "type": "checkbox",
+      "label": "$option_live_limits",
+      "default_case": ["MinimumLiveBoost"],
       "cases": [
-        {"name": "Yes", "label": "$unlimited_live_yes"},
-        {"name": "No", "label": "$unlimited_live_no", "option": ["LiveCount"]}
+        {
+          "name": "LiveCount",
+          "label": "$option_live_count",
+          "option": ["LiveCountValue"]
+        },
+        {
+          "name": "MinimumLiveBoost",
+          "label": "$option_minimum_live_boost",
+          "option": ["MinimumLiveBoostValue"]
+        }
       ]
     },
-    "LiveCount": {
+    "LiveCountValue": {
       "type": "input",
       "label": "$option_live_count",
       "inputs": [
@@ -111,7 +118,7 @@
         }
       }
     },
-    "MinimumLiveBoost": {
+    "MinimumLiveBoostValue": {
       "type": "input",
       "label": "$option_minimum_live_boost",
       "inputs": [
@@ -120,8 +127,8 @@
           "label": "$input_minimum_live_boost",
           "default": "1",
           "pipeline_type": "int",
-          "verify": "^\\d+$",
-          "pattern_msg": "$validation_non_negative_integer"
+          "verify": "^[1-9]\\d*$",
+          "pattern_msg": "$validation_positive_integer"
         }
       ],
       "pipeline_override": {

@@ -1,1 +1,1 @@
-@AGENTS.md
+Before any work starts and after the user sends the first message, you must explicitly read `AGENTS.md`, explicitly follow the requirements, and explicitly read the files required by `AGENTS.md`.

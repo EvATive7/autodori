@@ -145,7 +145,7 @@
         "action": "Custom",
         "custom_action": "HandleLiveBoost",
         "custom_action_param": {
-            "minimum": 1
+            "minimum": 0
         },
         "next": [
             "ensure_live_mode",
