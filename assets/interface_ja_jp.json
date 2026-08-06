@@ -17,6 +17,8 @@
   "input_live_count": "ライブ回数",
   "live_mode_free": "フリーライブ",
   "live_mode_challenge": "チャレンジライブ",
+  "option_liveboost_consumption": "LIVE BOOST消費設定",
+  "liveboost_consumption_auto": "自動",
   "option_minimum_live_boost": "最低 Live Boost",
   "input_minimum_live_boost": "最低 Live Boost",
   "validation_positive_integer": "正の整数を入力してください。"

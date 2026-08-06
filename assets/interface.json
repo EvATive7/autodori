@@ -42,6 +42,7 @@
       "option": [
         {"name": "Difficulty"},
         {"name": "LiveMode"},
+        {"name": "LiveBoostConsumption"},
         {"name": "LiveLimits"}
       ]
     },
@@ -78,6 +79,18 @@
       "cases": [
         {"name": "FreeLive", "label": "$live_mode_free", "pipeline_override": {"select_live_mode": {"recognition": "OCR", "expected": "自由演出", "roi": [679, 183, 257, 354], "action": "Click", "post_delay": 1000, "next": ["select_song", "select_live_mode", "live_home_button", "[JumpBack]login_expired", "[JumpBack]connect_failed"]}}},
         {"name": "ChallengeLive", "label": "$live_mode_challenge", "pipeline_override": {"select_live_mode": {"recognition": "OCR", "expected": "挑战演出", "roi": [679, 183, 257, 354], "action": "Click", "post_delay": 1000, "next": ["select_song", "select_live_mode", "live_home_button", "[JumpBack]login_expired", "[JumpBack]connect_failed"]}}}
+      ]
+    },
+    "LiveBoostConsumption": {
+      "label": "$option_liveboost_consumption",
+      "default_case": "Auto",
+      "cases": [
+        {"name": "Zero", "label": "0", "pipeline_override": {"select_liveboost_consumption": {"custom_recognition_param": {"consumption": 0}}}},
+        {"name": "One", "label": "1", "pipeline_override": {"select_liveboost_consumption": {"custom_recognition_param": {"consumption": 1}}}},
+        {"name": "Two", "label": "2", "pipeline_override": {"select_liveboost_consumption": {"custom_recognition_param": {"consumption": 2}}}},
+        {"name": "Three", "label": "3", "pipeline_override": {"select_liveboost_consumption": {"custom_recognition_param": {"consumption": 3}}}},
+        {"name": "Ten", "label": "10", "pipeline_override": {"select_liveboost_consumption": {"custom_recognition_param": {"consumption": 10}}}},
+        {"name": "Auto", "label": "$liveboost_consumption_auto", "pipeline_override": {"select_liveboost_consumption": {"custom_recognition_param": {"consumption": "auto"}}}}
       ]
     },
     "LiveLimits": {

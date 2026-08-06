@@ -59,6 +59,15 @@ callback_data: dict = {}
 callback_data_lock = threading.Lock()
 current_difficulty = "hard"
 
+LIVEBOOST_CONSUMPTION_BOXES = {
+    0: [987, 118, 30, 30],
+    1: [987, 195, 30, 30],
+    2: [987, 273, 30, 30],
+    3: [987, 349, 30, 30],
+    10: [987, 502, 30, 30],
+}
+LIVEBOOST_TEN_RADIO_ROI = [994, 509, 17, 17]
+
 
 def decode_agent_value(value):
     if not isinstance(value, str):
@@ -326,6 +335,115 @@ class LiveBoostEnoughRecognition(CustomRecognition):
 
         logging.debug("Live boost: {}".format(live_boost))
         return CustomRecognition.AnalyzeResult(roi, str(live_boost))
+
+
+@AgentServer.custom_recognition("LiveBoostConsumptionRecognition")
+class LiveBoostConsumptionRecognition(CustomRecognition):
+    def analyze(
+        self, context: Context, argv: CustomRecognition.AnalyzeArg
+    ) -> Union[CustomRecognition.AnalyzeResult, Optional[RectType]]:
+        params = json.loads(argv.custom_recognition_param or "{}")
+        requested = decode_agent_value(params.get("consumption", "auto"))
+        if isinstance(requested, str):
+            requested = requested.strip().lower()
+
+        if requested not in {0, 1, 2, 3, 10, "auto"}:
+            logging.error("Unsupported Live Boost consumption setting: %r", requested)
+            return None
+
+        ten_available = False
+        if requested in {10, "auto"}:
+            remaining = context.run_recognition(
+                "liveboost_ten_remaining_ocr", argv.image
+            )
+            remaining_text = ""
+            if remaining and remaining.best_result:
+                remaining_text = remaining.best_result.text or ""
+            remaining_match = re.search(
+                r"今日剩余\s*(\d+)\s*次", remaining_text.replace(" ", "")
+            )
+            if remaining_match:
+                ten_available = int(remaining_match.group(1)) > 0
+            else:
+                logging.warning(
+                    "Unable to read the remaining daily Live Boost x10 uses: %r",
+                    remaining_text,
+                )
+
+        if requested == "auto":
+            selected = 10 if ten_available else 3
+        elif requested == 10 and not ten_available:
+            selected = 3
+        else:
+            selected = requested
+
+        ten_radio = argv.image[
+            LIVEBOOST_TEN_RADIO_ROI[1] : LIVEBOOST_TEN_RADIO_ROI[1]
+            + LIVEBOOST_TEN_RADIO_ROI[3],
+            LIVEBOOST_TEN_RADIO_ROI[0] : LIVEBOOST_TEN_RADIO_ROI[0]
+            + LIVEBOOST_TEN_RADIO_ROI[2],
+        ]
+        ten_enabled = bool(
+            (
+                (ten_radio[:, :, 2] > 200)
+                & (ten_radio[:, :, 1] < 160)
+                & (ten_radio[:, :, 0] < 200)
+            ).sum()
+            >= 5
+        )
+
+        logging.debug(
+            "Live Boost consumption requested=%r selected=%d ten_available=%s ten_enabled=%s",
+            requested,
+            selected,
+            ten_available,
+            ten_enabled,
+        )
+        return CustomRecognition.AnalyzeResult(
+            LIVEBOOST_CONSUMPTION_BOXES[selected],
+            {
+                "requested": requested,
+                "selected": selected,
+                "ten_available": ten_available,
+                "ten_enabled": ten_enabled,
+                "toggle_ten": ten_enabled != (selected == 10),
+                "standard_box": (
+                    LIVEBOOST_CONSUMPTION_BOXES[selected]
+                    if selected != 10
+                    else None
+                ),
+                "ten_box": LIVEBOOST_CONSUMPTION_BOXES[10],
+            },
+        )
+
+
+@AgentServer.custom_action("ApplyLiveBoostConsumption")
+class ApplyLiveBoostConsumption(CustomAction):
+    def run(self, context: Context, argv: CustomAction.RunArg):
+        if not argv.reco_detail.best_result:
+            return CustomAction.RunResult(False)
+
+        detail = decode_agent_value(argv.reco_detail.best_result.detail)
+        if not isinstance(detail, dict):
+            logging.error("Invalid Live Boost consumption recognition detail: %r", detail)
+            return CustomAction.RunResult(False)
+
+        controller = context.tasker.controller
+
+        def click_box(box):
+            if not isinstance(box, list) or len(box) != 4:
+                raise ValueError(f"Invalid Live Boost consumption target: {box!r}")
+            x, y, width, height = box
+            controller.post_click(x + width // 2, y + height // 2).wait()
+
+        if detail.get("toggle_ten"):
+            click_box(detail["ten_box"])
+            time.sleep(0.15)
+
+        if detail.get("standard_box"):
+            click_box(detail["standard_box"])
+
+        return CustomAction.RunResult(True)
 
 
 @AgentServer.custom_action("HandleLiveBoost")

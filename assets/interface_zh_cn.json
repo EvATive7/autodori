@@ -17,6 +17,8 @@
   "input_live_count": "打歌数量",
   "live_mode_free": "自由演出",
   "live_mode_challenge": "挑战演出",
+  "option_liveboost_consumption": "LIVE BOOST消费设定",
+  "liveboost_consumption_auto": "自动",
   "option_minimum_live_boost": "最低 Live Boost",
   "input_minimum_live_boost": "最低 Live Boost",
   "validation_positive_integer": "请输入正整数。"

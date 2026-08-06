@@ -17,6 +17,8 @@
   "input_live_count": "Live count",
   "live_mode_free": "Free live",
   "live_mode_challenge": "Challenge live",
+  "option_liveboost_consumption": "LIVE BOOST consumption",
+  "liveboost_consumption_auto": "Automatic",
   "option_minimum_live_boost": "Minimum live boost",
   "input_minimum_live_boost": "Minimum live boost",
   "validation_positive_integer": "Enter a positive integer."

@@ -148,6 +148,46 @@
             "minimum": 0
         },
         "next": [
+            "open_liveboost_settings",
+            "[JumpBack]exit_rehearsal_mode"
+        ]
+    },
+    "open_liveboost_settings": {
+        "recognition": "TemplateMatch",
+        "template": "live/button/liveboost_settings.png",
+        "action": "Click",
+        "post_delay": 500,
+        "next": [
+            "select_liveboost_consumption",
+            "[JumpBack]exit_rehearsal_mode"
+        ]
+    },
+    "liveboost_ten_remaining_ocr": {
+        "recognition": "OCR",
+        "only_rec": true,
+        "roi": [920, 470, 130, 35]
+    },
+    "select_liveboost_consumption": {
+        "recognition": "Custom",
+        "custom_recognition": "LiveBoostConsumptionRecognition",
+        "custom_recognition_param": {
+            "consumption": "auto"
+        },
+        "action": "Custom",
+        "custom_action": "ApplyLiveBoostConsumption",
+        "post_delay": 300,
+        "next": [
+            "confirm_liveboost_settings",
+            "[JumpBack]exit_rehearsal_mode"
+        ]
+    },
+    "confirm_liveboost_settings": {
+        "recognition": "OCR",
+        "expected": "OK",
+        "roi": [520, 605, 224, 70],
+        "action": "Click",
+        "post_delay": 500,
+        "next": [
             "ensure_live_mode",
             "[JumpBack]exit_rehearsal_mode"
         ]
