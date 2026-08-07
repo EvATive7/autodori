@@ -96,6 +96,7 @@
     "LiveLimits": {
       "type": "checkbox",
       "label": "$option_live_limits",
+      "description": "$option_live_limits_description",
       "default_case": ["MinimumLiveBoost"],
       "cases": [
         {
@@ -145,7 +146,7 @@
         }
       ],
       "pipeline_override": {
-        "ensure_liveboost": {
+        "InitializeRuntime": {
           "custom_action_param": {
             "minimum": "{value}"
           }

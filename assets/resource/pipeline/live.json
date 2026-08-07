@@ -5,6 +5,9 @@
     "InitializeRuntime": {
         "action": "Custom",
         "custom_action": "InitializeRuntime",
+        "custom_action_param": {
+            "minimum": 0
+        },
         "focus": {
             "Node.Action.Starting": "$log_autolive_initializing",
             "Node.Action.Succeeded": "$log_autolive_started",
@@ -179,9 +182,6 @@
         },
         "action": "Custom",
         "custom_action": "HandleLiveBoost",
-        "custom_action_param": {
-            "minimum": 0
-        },
         "next": [
             "open_liveboost_settings",
             "[JumpBack]exit_rehearsal_mode"

@@ -88,6 +88,7 @@ class AgentSession:
         self.adb_path: str | None = None
         self.adb_serial: str | None = None
         self.live_limit: int | None = None
+        self.minimum_live_boost = 0
         self.completed_live_count = 0
 
     def bind(self, context: Context) -> None:
@@ -156,11 +157,19 @@ class AgentSession:
         self._controller = controller
         logging.info("Initialized Agent runtime for ADB device %s", adb_serial)
 
-    def start_auto_live(self, limit: int | None) -> None:
+    def start_auto_live(self, limit: int | None, minimum_live_boost: int = 0) -> None:
         if limit is not None and limit <= 0:
             raise ValueError("The live count limit must be a positive integer")
+        if minimum_live_boost < 0:
+            raise ValueError("The minimum Live Boost limit cannot be negative")
         self.live_limit = limit
+        self.minimum_live_boost = minimum_live_boost
         self.completed_live_count = 0
+        logging.info(
+            "Auto live limits applied: live_count=%s, minimum_live_boost=%d",
+            limit if limit is not None else "disabled",
+            minimum_live_boost,
+        )
 
     def complete_live(self) -> bool:
         if self.live_limit is None:
@@ -242,8 +251,10 @@ class InitializeRuntime(CustomAction):
             if not isinstance(params, dict):
                 raise ValueError("The AutoLive parameters must be a JSON object")
             limit = params.get("limit")
+            minimum_live_boost = params.get("minimum", 0)
             agent_session.start_auto_live(
-                int(decode_agent_value(limit)) if limit is not None else None
+                int(decode_agent_value(limit)) if limit is not None else None,
+                int(decode_agent_value(minimum_live_boost)),
             )
             return CustomAction.RunResult(True)
         except Exception as e:
@@ -452,9 +463,22 @@ class HandleLiveBoost(CustomAction):
         agent_session.bind(context)
         liveboost = int(decode_agent_value(argv.reco_detail.best_result.detail))
         params = json.loads(argv.custom_action_param or "{}")
-        minimum = int(decode_agent_value(params.get("minimum", 0)))
-        if minimum > 0 and liveboost < minimum:
-            logging.debug("Live boost not enough, ready to exit")
+        if not isinstance(params, dict):
+            raise ValueError("The Live Boost parameters must be a JSON object")
+        minimum = agent_session.minimum_live_boost
+        if "minimum" in params:
+            minimum = int(decode_agent_value(params["minimum"]))
+        if minimum < 0:
+            raise ValueError("The minimum Live Boost limit cannot be negative")
+        limit_reached = minimum > 0 and liveboost < minimum
+        logging.info(
+            "Live Boost limit check: current=%d, minimum=%d, reached=%s",
+            liveboost,
+            minimum,
+            limit_reached,
+        )
+        if limit_reached:
+            logging.info("Live Boost is below the configured minimum; stopping AutoLive")
             context.run_action("close_app")
             context.run_action("stop")
         return CustomAction.RunResult(True)
@@ -528,6 +552,11 @@ class LiveLimitReached(CustomRecognition):
     ) -> Union[CustomRecognition.AnalyzeResult, Optional[RectType]]:
         agent_session.bind(context)
         if agent_session.live_limit_reached():
+            logging.info(
+                "Live count limit reached: %d/%d",
+                agent_session.completed_live_count,
+                agent_session.live_limit,
+            )
             return CustomRecognition.AnalyzeResult([0, 0, 0, 0], "")
         return CustomRecognition.AnalyzeResult(None, "")
 
@@ -559,7 +588,11 @@ class SavePlayResult(CustomAction):
                 context.run_action("close_app")
                 context.run_action("stop")
             else:
-                agent_session.complete_live()
+                limit_reached = agent_session.complete_live()
+                if limit_reached:
+                    logging.info(
+                        "Live count limit reached after saving the result; waiting to return home"
+                    )
             return CustomAction.RunResult(True)
         except Exception as e:
             logging.error(f"Failed to save play result: {e}")

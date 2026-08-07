@@ -13,6 +13,7 @@
   "option_difficulty": "Difficulty",
   "option_live_mode": "Live mode",
   "option_live_limits": "Live limits",
+  "option_live_limits_description": "Select each limit independently; an unselected limit is disabled.",
   "option_live_count": "Live count",
   "input_live_count": "Live count",
   "live_mode_free": "Free live",

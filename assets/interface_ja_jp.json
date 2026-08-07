@@ -13,6 +13,7 @@
   "option_difficulty": "難易度",
   "option_live_mode": "ライブモード",
   "option_live_limits": "ライブ制限",
+  "option_live_limits_description": "有効にする制限を個別に選択してください。未選択の制限は無効です。",
   "option_live_count": "ライブ回数",
   "input_live_count": "ライブ回数",
   "live_mode_free": "フリーライブ",

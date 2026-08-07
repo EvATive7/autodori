@@ -13,6 +13,7 @@
   "option_difficulty": "难度",
   "option_live_mode": "演出模式",
   "option_live_limits": "打歌限制",
+  "option_live_limits_description": "分别勾选要启用的限制；未勾选的限制不会生效。",
   "option_live_count": "打歌数量",
   "input_live_count": "打歌数量",
   "live_mode_free": "自由演出",
