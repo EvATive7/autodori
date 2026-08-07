@@ -463,6 +463,8 @@ class HandleLiveBoost(CustomAction):
         agent_session.bind(context)
         liveboost = int(decode_agent_value(argv.reco_detail.best_result.detail))
         params = json.loads(argv.custom_action_param or "{}")
+        if params is None:
+            params = {}
         if not isinstance(params, dict):
             raise ValueError("The Live Boost parameters must be a JSON object")
         minimum = agent_session.minimum_live_boost
