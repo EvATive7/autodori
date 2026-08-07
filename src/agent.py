@@ -67,6 +67,8 @@ LIVEBOOST_CONSUMPTION_BOXES = {
     10: [987, 502, 30, 30],
 }
 LIVEBOOST_TEN_RADIO_ROI = [994, 509, 17, 17]
+LIVE_MODE_SWITCH_BUTTON_ROI = [0, 470, 120, 100]
+LIVE_MODE_SWITCH_TARGET = [29, 502, 51, 48]
 
 
 def decode_agent_value(value):
@@ -426,6 +428,58 @@ class LiveBoostConsumptionRecognition(CustomRecognition):
                 "ten_box": LIVEBOOST_CONSUMPTION_BOXES[10],
             },
         )
+
+
+@AgentServer.custom_recognition("LiveModeSwitchRecognition")
+class LiveModeSwitchRecognition(CustomRecognition):
+    def analyze(
+        self, context: Context, argv: CustomRecognition.AnalyzeArg
+    ) -> Union[CustomRecognition.AnalyzeResult, Optional[RectType]]:
+        recognition = context.run_recognition(
+            "_live_mode_switch_button",
+            argv.image,
+            {
+                "_live_mode_switch_button": {
+                    "recognition": "TemplateMatch",
+                    "template": "live/button/switch_to_live_mode.png",
+                    "roi": LIVE_MODE_SWITCH_BUTTON_ROI,
+                    "only_rec": True,
+                }
+            },
+        )
+        switch_required = bool(recognition and recognition.hit)
+        logging.info(
+            "Live mode check: switch_required=%s",
+            switch_required,
+        )
+        return CustomRecognition.AnalyzeResult(
+            LIVE_MODE_SWITCH_TARGET,
+            {"switch_required": switch_required},
+        )
+
+
+@AgentServer.custom_action("EnsureLiveMode")
+class EnsureLiveMode(CustomAction):
+    def run(self, context: Context, argv: CustomAction.RunArg):
+        if not argv.reco_detail.best_result:
+            logging.error("Live mode check did not return a recognition result")
+            return CustomAction.RunResult(False)
+
+        detail = decode_agent_value(argv.reco_detail.best_result.detail)
+        if not isinstance(detail, dict) or not isinstance(
+            detail.get("switch_required"), bool
+        ):
+            logging.error("Invalid live mode recognition detail: %r", detail)
+            return CustomAction.RunResult(False)
+
+        if not detail["switch_required"]:
+            logging.info("Live mode is already enabled; skipping mode switch")
+            return CustomAction.RunResult(True)
+
+        x, y, width, height = LIVE_MODE_SWITCH_TARGET
+        context.tasker.controller.post_click(x + width // 2, y + height // 2).wait()
+        logging.info("Switched from rehearsal mode to live mode")
+        return CustomAction.RunResult(True)
 
 
 @AgentServer.custom_action("ApplyLiveBoostConsumption")

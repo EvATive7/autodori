@@ -166,13 +166,11 @@
         ]
     },
     "exit_rehearsal_mode": {
-        "action": "Click",
-        "target": [
-            29,
-            502,
-            51,
-            48
-        ]
+        "recognition": "Custom",
+        "custom_recognition": "LiveModeSwitchRecognition",
+        "action": "Custom",
+        "custom_action": "EnsureLiveMode",
+        "post_delay": 700
     },
     "ensure_liveboost": {
         "recognition": "Custom",
