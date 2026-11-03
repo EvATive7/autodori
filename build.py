@@ -71,6 +71,18 @@ if maa_bin_path2 is None:
 add_data_param2 = f"{maa_bin_path2}{os.pathsep}MaaAgentBinary"
 
 
+def _extract_archive_safely(zip_ref, temp_dir):
+    """Extract a release zip, refusing members that escape the target or are symlinks."""
+    target_resolved = os.path.realpath(temp_dir)
+    for member in zip_ref.infolist():
+        member_path = os.path.realpath(os.path.join(target_resolved, member.filename))
+        if member_path != target_resolved and not member_path.startswith(target_resolved + os.sep):
+            raise Exception(f"Refusing to extract unsafe archive member: {member.filename}")
+        if (member.external_attr >> 16) & 0o170000 == 0o120000:
+            raise Exception(f"Refusing to extract symlink archive member: {member.filename}")
+    zip_ref.extractall(temp_dir)
+
+
 # 下载 minitouch.zip 并解压
 def download_and_extract_minitouch():
     # GitHub 最新 release 页面
@@ -78,14 +90,14 @@ def download_and_extract_minitouch():
 
     # 下载文件
     print("Downloading minitouch.zip...")
-    response = requests.get(url)
+    response = requests.get(url, timeout=30)
     if response.status_code == 200:
         with ZipFile(BytesIO(response.content)) as zip_ref:
             # 解压到临时目录
             temp_dir = os.path.join(current_dir, "minitouch_temp")
             if os.path.exists(temp_dir):
                 shutil.rmtree(temp_dir)  # 清理旧的临时文件夹
-            zip_ref.extractall(temp_dir)
+            _extract_archive_safely(zip_ref, temp_dir)
             print("minitouch.zip downloaded and extracted.")
             return temp_dir
     else:
